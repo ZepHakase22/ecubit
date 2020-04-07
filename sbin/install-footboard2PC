@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# INSTALL ALL
+
+install-google-chrome
+install-net-tools
+install-snap
+install-remmina
+install-compilers
+install-vscode
+install-FTDI

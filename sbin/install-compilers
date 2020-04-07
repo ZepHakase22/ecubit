@@ -1,0 +1,116 @@
+#!/bin/bash
+
+# Install build essentials
+
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt install build-essential
+sudo apt install gawk texinfo bison file wget
+
+# downloading gcc
+
+cd ~ && mkdir gcc_all && cd gcc_all
+wget https://ftpmirror.gnu.org/binutils/binutils-2.31.1.tar.bz2
+wget https://ftpmirror.gnu.org/glibc/glibc-2.28.tar.bz2
+wget https://ftpmirror.gnu.org/gcc/gcc-8.3.0/gcc-8.3.0.tar.gz
+wget https://ftpmirror.gnu.org/gcc/gcc-9.2.0/gcc-9.2.0.tar.gz
+git clone --depth=1 https://github.com/raspberrypi/linux
+tar xf binutils-2.31.1.tar.bz2
+tar xf glibc-2.28.tar.bz2
+tar xf gcc-8.3.0.tar.gz
+tar xf gcc-9.2.0.tar.gz
+rm *.tar.*
+cd gcc-8.3.0
+contrib/download_prerequisites
+rm *.tar.*
+cd .. && cd gcc-9.2.0
+contrib/download_prerequisites
+rm *.tar.*
+
+# Creating cross compiler directory
+cd ~/gcc_all
+sudo mkdir -p /opt/cross-pi-gcc
+sudo chown $USER /opt/cross-pi-gcc
+export PATH=/opt/cross-pi-gcc/bin:$PATH
+
+# Copy kernel headers
+
+cd linux
+KERNEL=kernel
+make ARCH=arm INSTALL_HDR_PATH=/opt/cross-pi-gcc/arm-linux-gnueabihf headers_install
+
+#Compiling binutils
+
+cd ~/gcc_all
+mkdir -p build-binutils && cd build-binutils
+../binutils-2.31.1/configure --prefix=/opt/cross-pi-gcc --target=arm-linux-gnueabihf --with-arch=armv6 --with-fpu=vfp --with-float=hard --disable-multilib
+make -j 8
+make install
+
+# Partial build of gcc
+
+cd ~/gcc_all
+mkdir -p build-gcc && cd build-gcc
+../gcc-8.3.0/configure --prefix=/opt/cross-pi-gcc --target=arm-linux-gnueabihf --enable-languages=c,c++,fortran --with-arch=armv6 --with-fpu=vfp --with-float=hard --disable-multilib
+make -j8 all-gcc
+make install-gcc
+
+# Partial build of glibc
+
+cd ~/gcc_all
+mkdir -p build-glibc && cd build-glibc
+../glibc-2.28/configure --prefix=/opt/cross-pi-gcc/arm-linux-gnueabihf --build=$MACHTYPE --host=arm-linux-gnueabihf --target=arm-linux-gnueabihf --with-arch=armv6 --with-fpu=vfp --with-float=hard --with-headers=/opt/cross-pi-gcc/arm-linux-gnueabihf/include --disable-multilib libc_cv_forced_unwind=yes
+make install-bootstrap-headers=yes install-headers
+make -j8 csu/subdir_lib
+install csu/crt1.o csu/crti.o csu/crtn.o /opt/cross-pi-gcc/arm-linux-gnueabihf/lib
+arm-linux-gnueabihf-gcc -nostdlib -nostartfiles -shared -x c /dev/null -o /opt/cross-pi-gcc/arm-linux-gnueabihf/lib/libc.so
+touch /opt/cross-pi-gcc/arm-linux-gnueabihf/include/gnu/stubs.h
+
+# Total buildin
+
+cd ..
+cd build-gcc
+make -j 8 all-target-libgcc
+make install-target-libgcc
+cd ..
+cd build-glibc
+make -j 8
+make install
+cd ..
+cd build-gcc
+make -j 8
+make install
+
+# Building gcc9.2.0 for Ubuntu
+
+sudo cp -r /opt/cross-pi-gcc /opt/cross-pi-gcc-8.3.0
+cp ~/Programs/footboard2PC/sbin/asan_linux.cc ~/gcc_all/gcc-9.2.0/libsanitizer/asan
+cd ~/gcc_all
+mkdir -p build-gcc9 && cd build-gcc9
+../gcc-9.2.0/configure --prefix=/opt/cross-pi-gcc --target=arm-linux-gnueabihf --enable-languages=c,c++,fortran --with-arch=armv6 --with-fpu=vfp --with-float=hard --disable-multilib
+make -j 8
+make install
+
+# Building gcc9.2.0 for Raspbian
+
+sudo mkdir -p /opt/gcc-9.2.0
+sudo chown $USER /opt/gcc-9.2.0
+cd ~/gcc_all
+mkdir -p build-native-gcc9 && cd build-native-gcc9
+../gcc-9.2.0/configure --prefix=/opt/gcc-9.2.0 --build=$MACHTYPE --host=arm-linux-gnueabihf --target=arm-linux-gnueabihf --enable-languages=c,c++,fortran --with-arch=armv6 --with-fpu=vfp --with-float=hard --disable-multilib --program-suffix=-9.2
+make -j 8
+make install-strip
+
+# General Configuration and cleaning
+
+echo 'export PATH=/opt/cross-pi-gcc/bin:$PATH' >> ~/.bashrc
+cd ~
+sudo rm -rf gcc_all
+
+#Transferring files on raspberry
+
+cd /opt
+tar -cjvf ~/gcc-9.2.0-armhf-raspbian.tar.bz2 gcc-9.2.0
+cd ~
+scp ~/gcc-9.2.0-armhf-raspbian.tar.bz2 pi@192.168.1.60:~
+rm ~/gcc-9.2.0-armhf-raspbian.tar.bz2

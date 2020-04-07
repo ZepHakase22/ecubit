@@ -1,0 +1,25 @@
+#!/bin/bash
+
+cd ~/Programs
+mkdir -p footboard2hf footboard2hf/downloads footboard2hf/libftd2xx && cd footboard2hf/downloads
+
+rm -f libftd2xx-arm-v6-hf-1.4.8.gz
+wget ftdichip.com/Drivers/D2XX/Linux/libftd2xx-arm-v6-hf-1.4.8.gz
+
+tar xf libftd2xx-arm-v6-hf-1.4.8.gz -C ../libftd2xx
+
+sudo mkdir -p /usr/local/lib/hf
+sudo cp ../libftd2xx/release/build/libftd2xx.a  ../libftd2xx/release/build/libftd2xx.so.1.4.8 /usr/local/lib
+sudo chmod u+x /usr/local/lib/libftd2xx.a /usr/local/lib/libftd2xx.so.1.4.8
+
+sudo ln -sf /usr/local/lib/libftd2xx.so.1.4.8 /usr/local/lib/libftd2xx.so
+sudo ln -sf /usr/local/lib/libftd2xx.so.1.4.8 /usr/local/lib/hf/libftd2xx.so
+
+cd ~/Programs/footboard2hf/sbin
+sudo cp 99-ftdi.d2xx.rules /etc/udev/rules.d
+sudo mkdir -p /etc/udev/scripts
+sudo cp unbind_ftdi.sh /etc/udev/scripts
+
+cp -r ecubit-test-hf ~/Programs/footboard2hf/libftd2xx/release/examples
+
+echo 'export PATH=~/Programs/footboard2hf/sbin:$PATH' >> ~/.bashrc

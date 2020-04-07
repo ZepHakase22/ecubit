@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# installing FTDI drivers
+
+mkdir -p ~/Programs/footboard2PC/libftd2xx ~/Programs/footboard2PC/libftd2xxhf && cd ~/Programs/footboard2PC/downloads
+wget ftdichip.com/Drivers/D2XX/Linux/libftd2xx-x86_64-1.4.8.gz
+wget ftdichip.com/Drivers/D2XX/Linux/libftd2xx-arm-v6-hf-1.4.8.gz
+tar xf libftd2xx-x86_64-1.4.8.gz -C ../libftd2xx
+tar xf libftd2xx-arm-v6-hf-1.4.8.gz -C ../libftd2xxhf
+sudo cp ../libftd2xx/release/build/libftd2xx.a  ../libftd2xx/release/build/libftd2xx.so.1.4.8 /usr/local/lib
+sudo chmod u+x /usr/local/lib/libftd2xx.a /usr/local/lib/libftd2xx.so.1.4.8
+sudo ln -sf /usr/local/lib/libftd2xx.so.1.4.8 /usr/local/lib/libftd2xx.so
+cd ~/Programs/footboard2PC/sbin
+sudo cp 99-ftdi.d2xx.rules /etc/udev/rules.d
+sudo mkdir -p /etc/udev/scripts
+sudo cp unbind_ftdi.sh /etc/udev/scripts

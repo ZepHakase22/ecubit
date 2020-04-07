@@ -1,0 +1,1 @@
+ACTION=="add", SUBSYSTEMS=="usb", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6010", KERNEL=="ttyUSB*" RUN+="/etc/udev/scripts/unbind_ftdi.sh"

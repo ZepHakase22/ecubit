@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# Installing Visual Studio code
+
+sudo snap install code --classic
+code --install-extension ms-vscode.cpptools
