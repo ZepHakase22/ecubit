@@ -9,18 +9,18 @@ else
 endif
 
 CC = g++
-CDBFLAGS = -Wall -Wextra -g
-CXXFLAGS = -Wall -Wextra
+CXXFLAGS = -Wall -Wextra -g -I../libftd2xx/release 
 
 app = footboard2PC
-lib = ../libftd2xx/release/build/libftd2xx.agit 
-objects = $(app).o ftd.o ftdException.o
+lib = ../libftd2xx/release/build/libftd2xx.a
+objects = $(app).o ftd.o ftdDevice.o EnumToString.o
 
-$(APP): ftd.o
+$(app): $(objects)
 	$(CC) $(CDBFLAGS) -o $(app) $(objects) $(lib) $(DEPENDENCIES)
 
-ftd.o: ftd.hpp ftdException.o
-ftdException.o: enums.h ftdException.hpp
+$(app).o ftd.o: ftd.hpp ftdException.hpp enums.h Log.hpp
+ftdDevice.o: ftdDevice.hpp
+EnumToString.o: enums.h EnumToString.h
 
 .PHONY: clean
 clean:

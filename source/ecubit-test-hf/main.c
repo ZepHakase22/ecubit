@@ -13,7 +13,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/time.h>
-#include "../libftd2xx/release/ftd2xx.h"
+#include "../../libftd2xx/release/ftd2xx.h"
 
 #define BUF_SIZE 0x10
 
@@ -57,7 +57,6 @@ int main()
 	for(i = 0; i < MAX_DEVICES; i++) {
 		pcBufLD[i] = cBufLD[i];
 	}
-	pcBufLD[MAX_DEVICES] = NULL;
 	
 	ftStatus = FT_ListDevices(pcBufLD, &iNumDevs, FT_LIST_ALL | FT_OPEN_BY_SERIAL_NUMBER);
 	

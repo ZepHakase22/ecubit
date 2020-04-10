@@ -1,8 +1,9 @@
 // File name: "EnumToString.cpp"
-
+#include "enums.h"
 /// The strings associated with the enums are gererated here
 /////////////////////////////////////////////////////////////////////
 #define GENERATE_ENUM_STRINGS  // Start string generation
+
 #include "enums.h"           
 //#include "OtherEnum.h"
 //#include "AnotherOne.h"

@@ -12,6 +12,8 @@
         "stdexcept": "cpp",
         "typeinfo": "cpp",
         "limits": "cpp",
-        "system_error": "cpp"
+        "system_error": "cpp",
+        "deque": "cpp",
+        "string": "cpp"
     }
 }

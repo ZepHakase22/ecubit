@@ -1,14 +1,33 @@
+#include <iostream>
+
+#include "Log.hpp"
 #include "ftd.hpp"
+#include "ftdException.hpp"
 
+using namespace std;
 using namespace FTDI;
+structlog LOGCFG = {};
 
-int main(int argc, char *argv[]) {
-    // Initialize class ftd
+int main() {
+    LOGCFG.headers = false; 
+    LOGCFG.level = DEBUG;
+    int retCode = 0;
+
+    LOG(INFO) << "START"; 
     
-    ftd *footboard;
+    ftd *footboard = NULL;
 
-    footboard = new ftd();
+    try {
+        footboard = new ftd;
+    } catch(ftdException &ex) {
+        printException(ex);
+        retCode = -1;
+        goto end;
+    }
     // OpenDevice
     // Read 
     // Write to pc
+end:
+    delete footboard;
+    return retCode;
 }

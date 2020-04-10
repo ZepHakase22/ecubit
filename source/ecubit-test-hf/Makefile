@@ -8,7 +8,7 @@ else
 	DEPENDENCIES += -lrt
 endif
 
-CC = gcc-9.2
+CC = gcc
 CFLAGS = -Wall -Wextra
 
 DYNAMIC_LINK_OPTIONS := -Wl,-rpath
@@ -19,7 +19,7 @@ STATIC_APP = $(APP)-static
 
 DYNAMIC_APP = $(APP)-dynamic
 
-STATIC_LIB = ../../build/libftd2xx.a
+STATIC_LIB = ../../libftd2xx/release/build/libftd2xx.a
 
 all: $(STATIC_APP) $(DYNAMIC_APP)
 
