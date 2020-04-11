@@ -13,14 +13,15 @@ CXXFLAGS = -Wall -Wextra -g -I../libftd2xx/release
 
 app = footboard2PC
 lib = ../libftd2xx/release/build/libftd2xx.a
-objects = $(app).o ftd.o ftdDevice.o EnumToString.o
+objects = $(app).o ftd.o ftdDevice.o EnumToString.o parseopt.o
 
 $(app): $(objects)
 	$(CC) $(CDBFLAGS) -o $(app) $(objects) $(lib) $(DEPENDENCIES)
 
-$(app).o ftd.o: ftd.hpp ftdException.hpp enums.h Log.hpp
+$(app).o ftd.o: ftd.hpp ftdException.hpp enums.h Log.hpp types.h
 ftdDevice.o: ftdDevice.hpp
 EnumToString.o: enums.h EnumToString.h
+parseopt.o: cppopt.hpp
 
 .PHONY: clean
 clean:

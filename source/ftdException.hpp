@@ -2,6 +2,7 @@
 #define FTD_EXCEPTION_HPP
 
 #include <exception>
+#include "Log.hpp"
 
 #include "enums.h"
 #include "ftd2xx.h"
@@ -10,13 +11,15 @@
 #define ftdThrowInfo( status , info ) throw ftdException((ftdErrors)status,__FILE__,__LINE__,__func__,info)
 #define ftdThrowMsg( message ) throw ftdException(message,__FILE__,__LINE__,__func__)
 #define ftdThrowMsgInfo( message , info ) throw ftdException(message,__FILE__,__LINE__,__func__,info)
+#define TRACE LOG(INFO)
+#define EXCEPT(ex, mode) LOG(mode)  << #mode            << ": "             << ex.get_status() \
+                                    << " ( " << "\e[01m"      << ex.what()        << "\e[0m ) FILE: " \
+                                    << ex.get_file()    << " FUNC: "        << ex.get_file() \
+                                    << " LINE: "        << ex.get_line()    << " INFO: " \
+                                    << ex.get_info()
 
-#define printException( ex ) cout << "Exception: "      << ex.what()     << endl \
-                                  << "In file: "        << ex.get_file() << endl \
-                                  << "At line: "        << ex.get_line() << endl \
-                                  << "Inside Function: "<< ex.get_func() << endl \
-                                  << "Info: "           << ex.get_info() << endl
-
+#define BEGIN_LOG(mode) if(LOGCFG.level <= mode) {
+#define END_LOG }
 namespace FTDI {
     class ftdException : public std::exception {
         private:
@@ -46,7 +49,8 @@ namespace FTDI {
             {
                 msg = GetStringftdErrors(status);
             }
-           const char* get_file() const { return file; }
+            ftdErrors get_status() const { return status; }
+            const char* get_file() const { return file; }
             int get_line() const { return line; }
             const char* get_func() const { return func; }
             const char* get_info() const { return info; }

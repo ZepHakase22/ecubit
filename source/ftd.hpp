@@ -16,6 +16,8 @@ namespace FTDI {
         public:
         ftd();
         ~ftd() {}
+
+        vector<ftdDevice> get_devices() const  { return devices; }
     };
 }
 

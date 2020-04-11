@@ -1,8 +1,8 @@
 /* 
- * File:   Log.h
+ * File:   Log.hpp
  * Author: ZepHakase <ZepHakase22@gmail.com>
  *
- * Created on December 1, 2015, 6:00 PM
+ * Created on April 9, 2020, 2:00 AM
  */
 
 #ifndef LOG_H
