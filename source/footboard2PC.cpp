@@ -33,7 +33,12 @@ int main(int argc, char *argv[]) {
 
         if(params.isListing)
             goto end;
-        // footboard->open()
+        if(params.isSerialNumber) {
+            footboard->openBySerialNumber(params.value);
+        } else {
+            footboard->openByDescription(params.value);
+        }
+        
 
     } catch(ftdException &ex) {
         EXCEPT(ex,ERROR);

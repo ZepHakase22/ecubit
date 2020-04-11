@@ -17,4 +17,8 @@ typedef struct _parser {
 
 parser parse(int argc,char *argv[]);
 
+typedef enum tagOpenMode {
+    SERIAL_NUMBER,
+    DESCRIPTION
+} openMode;
 #endif

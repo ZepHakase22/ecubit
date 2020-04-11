@@ -1,4 +1,5 @@
 #include <memory>
+#include <string>
 
 #include "ftd2xx.h"
 #include "ftdException.hpp"
@@ -39,5 +40,41 @@ ftd::ftd() {
     }
     if(devices.size()==0) {
         ftdThrow(DEVICE_OPENED);
+    }
+}
+bool ftd::icompare(const string & str1,const string &str2)
+{
+    return ( (str1.size() == str2.size() ) &&
+            std::equal(str1.begin(), str1.end(), str2.begin(),[this] (const char & c1,const  char &c2){
+                return (c1==c2 || toupper(c1)==toupper(c2));
+            }));
+}
+
+void ftd::openBySerialNumber(const string &serialNumber) {
+    for (vector<ftdDevice>::iterator it = devices.begin(); it!= devices.end(); ++it) {
+        if(!icompare(serialNumber,it->get_serialNumber())) {
+            selectedDevice->open(SERIAL_NUMBER);
+            if(it->evaluateSpecification()) {
+                selectedDevice = make_shared<ftdDevice>(*it);
+                mode = SERIAL_NUMBER;
+                break;
+            } else {
+                ftdThrow(NO_D2XX_245FIFO_SUPPORT);
+            }
+        }
+    }
+}
+void ftd::openByDescription(const string &description) {
+    for (vector<ftdDevice>::iterator it = devices.begin(); it!= devices.end(); ++it) {
+        if(!icompare(description,it->get_description())) {
+            selectedDevice->open(DESCRIPTION);
+            if(it->evaluateSpecification()) {
+                selectedDevice = make_shared<ftdDevice>(*it);
+                mode = DESCRIPTION;
+                break;
+            } else {
+                ftdThrow(NO_D2XX_245FIFO_SUPPORT);
+            }
+        }
     }
 }
