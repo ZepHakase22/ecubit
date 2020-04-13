@@ -1,5 +1,7 @@
 #include <iostream>
 #include <memory>
+#include <iomanip>
+
 #include "ftd.hpp"
 #include "ftdException.hpp"
 #include "types.h"
@@ -13,7 +15,7 @@ int main(int argc, char *argv[]) {
 
     params = parse(argc,argv);
 
-    TRACE << "==================================== START ====================================="; 
+    TRACE << "========================================================= START ==========================================================";
    
     using _footboard = unique_ptr<ftd>;
 
@@ -23,8 +25,10 @@ int main(int argc, char *argv[]) {
         BEGIN_LOG(INFO)
             vector<ftdDevice> v = footboard->get_devices();
             for (vector<ftdDevice>::iterator it = v.begin(); it!=v.end(); ++it) {
-            TRACE << "Is High Speed: " << it->get_isHighSpeed() 
-                << " Device Type: " << it->get_ftDeviceType()
+            TRACE << "Is High Speed: " << setiosflags(ios::boolalpha) << it->get_isHighSpeed() 
+                    << resetiosflags(ios::boolalpha)
+                << " Device Type: " << it->get_ftStringDeviceType() 
+                << ":(" << it->get_ftDeviceType() << ")"
                 << " ID: " <<  it->get_id()
                 << " Serial Number: " << it->get_serialNumber()
                 << " Description: " << it->get_description(); 
@@ -38,7 +42,27 @@ int main(int argc, char *argv[]) {
         } else {
             footboard->openByDescription(params.value);
         }
-        
+        shared_ptr<ftdDevice> selectedDevice = footboard->get_selectedDevice();
+        TRACE   << "Device: " << selectedDevice->get_ftStringDeviceType() 
+                << " opened, with:" << endl 
+                << "Serial Number: " << selectedDevice->get_serialNumber()
+                << ", Description: " << selectedDevice->get_description() 
+                << ", Device version: " << selectedDevice->get_ftStringDeviceVersion() 
+                << ", " << endl
+                << "Vendor ID: " << hex << setiosflags (ios::showbase | ios::uppercase) 
+                        << selectedDevice->get_VendorId() << resetiosflags(ios::uppercase)
+                << ", Product ID: " << setiosflags(ios::uppercase) << selectedDevice->get_ProductId() 
+                        << resetiosflags(ios::showbase | ios::uppercase) << dec
+                << ", Manufacturer: " << selectedDevice->get_manufacturer()
+                << ", Manufacturer ID: " << selectedDevice->get_manufacturerId()
+                << ", Max power: " << selectedDevice->get_maxPower()
+                << ", PnP: " << setiosflags(ios::boolalpha) << selectedDevice->get_isPnp()
+                << ", " << endl
+                << "Self powered: " << selectedDevice->get_isSelfPowered()
+                << ", Remote wake up: " << selectedDevice->get_isRemoteWakeUp()
+                << ", FIFO 245: " << selectedDevice->get_isFifo245()
+                << ", D2XX: " << selectedDevice->get_isD2XX();
+
 
     } catch(ftdException &ex) {
         EXCEPT(ex,ERROR);
@@ -48,6 +72,6 @@ int main(int argc, char *argv[]) {
     // Read 
     // Write to pc
 end:
-    TRACE << "==================================== END =====================================";
+    TRACE << "========================================================== END ===========================================================" << endl;
     return retCode;
 }

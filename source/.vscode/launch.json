@@ -9,7 +9,11 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/footboard2PC",
-            "args": [],
+            "args": [
+                "-s",
+                "FT4WIND6A",
+                "DEBUG"
+            ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

@@ -33,7 +33,8 @@ BEGIN_ENUM(ftdErrors)
     DECL_ENUM_ELEMENT(DEVICE_DISCONNECTED,Device not connected to the USB),
     DECL_ENUM_ELEMENT(PERMISSION_DENIED,Permission denied),
     DECL_ENUM_ELEMENT(DEVICE_OPENED,Device already opened by other),
-    DECL_ENUM_ELEMENT(NO_D2XX_245FIFO_SUPPORT,Device was not configured for D2XX and 245FIFO)
+    DECL_ENUM_ELEMENT(NO_SUPPORTED_DEVICE,Device not supported or not configured for D2XX and 245FIFO use),
+    DECL_ENUM_ELEMENT(BAD_BLOCK, Data Allocation failure: bad_block)
 }
 END_ENUM(ftdErrors)
 

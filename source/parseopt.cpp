@@ -75,6 +75,7 @@ try
  
     if(params.value.empty()) {
         std::cout << "Missing device Serial Number or Description" << std::endl;
+        exit(1);
     }
   }
   catch (const cxxopts::OptionException& e)

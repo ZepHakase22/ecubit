@@ -23,6 +23,8 @@ ftdDevice.o: ftdDevice.hpp
 EnumToString.o: enums.h EnumToString.h
 parseopt.o: cppopt.hpp
 
+rebuild: clean $(app)
+
 .PHONY: clean
 clean:
 	-rm -f $(app) $(objects)

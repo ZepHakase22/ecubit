@@ -9,6 +9,8 @@
 #define LOG_H
 
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 
 using namespace std;
 
@@ -25,43 +27,70 @@ struct structlog {
 };
 
 extern structlog LOGCFG;
+ 
+class LOG : public ostream{
+    class LOGStreamBuf : public stringbuf {
+        ostream &output;
+        typelog msglevel = DEBUG;
+        inline string getLabel(typelog type) {
+            string label;
+            switch(type) {
+                case DEBUG: label = "DEBUG"; break;
+                case INFO:  label = "INFO "; break;
+                case WARN:  label = "WARN "; break;
+                case ERROR: label = "ERROR"; break;
+            }
+            return label;
+        }
 
-class LOG {
+
+        public:
+        LOGStreamBuf(typelog typel, ostream &str) 
+            :output(str)
+        {
+            msglevel=typel;
+        }
+
+        ~LOGStreamBuf() {
+            if(pbase()!=pptr()) {
+                if(msglevel >= LOGCFG.level) {
+                    putOutput(); 
+                } else {
+                    str().clear();
+                }
+            }
+        }
+
+        virtual int sync() {
+            if(msglevel >= LOGCFG.level) {
+                putOutput(); 
+            } else {
+                str().clear();
+            }
+
+            return 0;
+        }
+
+        void putOutput() {
+            if(LOGCFG.headers) {
+                output << setiosflags(std::ios::boolalpha) << "["+getLabel(msglevel)+"]" 
+                        << resetiosflags(std::ios::boolalpha) << str();
+            } else {
+                output << str();
+            }
+            str("");
+            output.flush();
+        }
+    };
+    LOGStreamBuf buffer;
 public:
-    LOG() {}
-    LOG(typelog type) {
-        msglevel = type;
-        if(LOGCFG.headers) {
-            operator << ("["+getLabel(type)+"]");
-        }
+    LOG(typelog type,ostream &str=cout) 
+        :ostream(&buffer),
+        buffer(type,str) {
     }
-    ~LOG() {
-        if(opened) {
-            cout << endl;
-        }
-        opened = false;
-    }
-    template<class T>
-    LOG &operator<<(const T &msg) {
-        if(msglevel >= LOGCFG.level) {
-            cout << msg;
-            opened = true;
-        }
-        return *this;
+    ~LOG() override {
     }
 private:
-    bool opened = false;
-    typelog msglevel = DEBUG;
-    inline string getLabel(typelog type) {
-        string label;
-        switch(type) {
-            case DEBUG: label = "DEBUG"; break;
-            case INFO:  label = "INFO "; break;
-            case WARN:  label = "WARN "; break;
-            case ERROR: label = "ERROR"; break;
-        }
-        return label;
-    }
 };
 
 #endif  /* LOG_H */

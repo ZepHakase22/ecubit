@@ -51,30 +51,27 @@ bool ftd::icompare(const string & str1,const string &str2)
 }
 
 void ftd::openBySerialNumber(const string &serialNumber) {
-    for (vector<ftdDevice>::iterator it = devices.begin(); it!= devices.end(); ++it) {
-        if(!icompare(serialNumber,it->get_serialNumber())) {
-            selectedDevice->open(SERIAL_NUMBER);
-            if(it->evaluateSpecification()) {
-                selectedDevice = make_shared<ftdDevice>(*it);
-                mode = SERIAL_NUMBER;
-                break;
-            } else {
-                ftdThrow(NO_D2XX_245FIFO_SUPPORT);
-            }
-        }
-    }
+    open(SERIAL_NUMBER,serialNumber);
 }
 void ftd::openByDescription(const string &description) {
+    open(DESCRIPTION,description);
+}
+void ftd::open(const openMode &mode_,const string &deviceIdentificator) {
     for (vector<ftdDevice>::iterator it = devices.begin(); it!= devices.end(); ++it) {
-        if(!icompare(description,it->get_description())) {
-            selectedDevice->open(DESCRIPTION);
-            if(it->evaluateSpecification()) {
-                selectedDevice = make_shared<ftdDevice>(*it);
-                mode = DESCRIPTION;
-                break;
-            } else {
-                ftdThrow(NO_D2XX_245FIFO_SUPPORT);
-            }
+        bool gg;
+        if( [this, deviceIdentificator,it, mode_]()->decltype(gg) {
+            bool b;
+            if(mode_ == SERIAL_NUMBER)
+                b=icompare(deviceIdentificator,it->get_serialNumber());
+            else
+                b=icompare(deviceIdentificator,it->get_description());
+            return b;
+        }()) {
+            it->open(mode_);
+            it->evaluateSpecification();
+            selectedDevice = make_shared<ftdDevice>(*it);
+            mode=mode_;
+            break;
         }
     }
 }

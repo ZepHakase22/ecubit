@@ -11,12 +11,12 @@
 #define ftdThrowInfo( status , info ) throw ftdException((ftdErrors)status,__FILE__,__LINE__,__func__,info)
 #define ftdThrowMsg( message ) throw ftdException(message,__FILE__,__LINE__,__func__)
 #define ftdThrowMsgInfo( message , info ) throw ftdException(message,__FILE__,__LINE__,__func__,info)
-#define TRACE LOG(INFO)
+#define TRACE  LOG(INFO) << endl
 #define EXCEPT(ex, mode) LOG(mode)  << #mode            << ": "             << ex.get_status() \
                                     << " ( " << "\e[01m"      << ex.what()        << "\e[0m ) FILE: " \
                                     << ex.get_file()    << " FUNC: "        << ex.get_file() \
                                     << " LINE: "        << ex.get_line()    << " INFO: " \
-                                    << ex.get_info()
+                                    << ex.get_info() << endl;
 
 #define BEGIN_LOG(mode) if(LOGCFG.level <= mode) {
 #define END_LOG }

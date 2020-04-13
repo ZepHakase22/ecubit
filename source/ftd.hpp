@@ -9,13 +9,12 @@ using namespace std;
 namespace FTDI {
     class ftd {
         private:
-        string serialNumber;
-        string description;
         vector<ftdDevice> devices;
         shared_ptr<ftdDevice> selectedDevice;
         openMode mode;
 
         bool icompare(const string & str1,const string &str2);
+        void open(const openMode &mode, const string &deviceIdentificator);
 
         protected:
 
@@ -25,7 +24,9 @@ namespace FTDI {
 
         void openBySerialNumber(const string &serialNumber);
         void openByDescription(const string &description);
+
         vector<ftdDevice> get_devices() const  { return devices; }
+        const shared_ptr<ftdDevice> get_selectedDevice() const { return selectedDevice; }
     };
 }
 
