@@ -18,8 +18,8 @@ objects = $(app).o ftd.o ftdDevice.o EnumToString.o parseopt.o
 $(app): $(objects)
 	$(CC) $(CDBFLAGS) -o $(app) $(objects) $(lib) $(DEPENDENCIES)
 
-$(app).o ftd.o: ftd.hpp ftdException.hpp enums.h Log.hpp types.h
-ftdDevice.o: ftdDevice.hpp
+$(app).o ftd.o: ftd.hpp ftdException.hpp enums.h Log.hpp types.h blocking_queue.hpp
+ftdDevice.o: ftdDevice.hpp blocking_queue.hpp
 EnumToString.o: enums.h EnumToString.h
 parseopt.o: cppopt.hpp
 

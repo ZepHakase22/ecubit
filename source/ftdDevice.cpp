@@ -1,5 +1,6 @@
 #include <memory>
 #include <string>
+#include <sys/time.h>
 #include "ftdException.hpp"
 #include "ftdDevice.hpp"
 
@@ -85,5 +86,89 @@ void ftdDevice::open(const openMode &mode) {
     if(ftStatus != FT_OK)
         ftdThrow(ftStatus);
 }
+void ftdDevice::read(const DWORD &numberOfBytesToRead, string &output) {
 
+    struct timeval  startTime;
+	DWORD dwRxSize = 0;
+    DWORD dwBytesRead = 0;
+    long int timeout = 60; // seconds
+    FT_STATUS ftStatus;
+    using readBuffer = shared_ptr<char[]>;
 
+	gettimeofday(&startTime, NULL);
+	for (int queueChecks = 0; dwRxSize < numberOfBytesToRead; queueChecks++)
+	{
+		// Periodically check for time-out 
+		if (queueChecks % 128 == 0) {
+			struct timeval now;
+			struct timeval elapsed;
+			
+			gettimeofday(&now, NULL);
+			timersub(&now, &startTime, &elapsed);
+
+			if (elapsed.tv_sec > timeout) 
+				break;
+
+            TRACE << ((queueChecks == 0)? "Number of bytes in D2XX receive-queue: " : ", ") << (int)dwRxSize << endl; 
+
+    		ftStatus = FT_GetQueueStatus(handle, &dwRxSize);
+    		if (ftStatus != FT_OK)
+    			ftdThrow(ftStatus);
+        }
+	}
+
+    TRACE << "Got" << dwRxSize << "(of " << numberOfBytesToRead << ")" << endl;
+
+	auto buf = readBuffer(new char[dwRxSize]);
+    ftStatus = FT_Read(handle, buf.get(), dwRxSize, &dwBytesRead);
+    if (ftStatus != FT_OK) 
+        ftdThrow(ftStatus);
+    
+    TRACE   << "Read: " << dwBytesRead << " of " << dwRxSize << " required:" << endl
+            << buf << endl;
+
+    output= buf.get();
+}
+void ftdDevice::continousRead(const DWORD &numberOfBytesToRead, shared_ptr<blocking_queue<string>> queue) {
+   struct timeval  startTime;
+	DWORD dwRxSize = 0;
+    DWORD dwBytesRead = 0;
+    long int timeout = 60; // seconds
+    FT_STATUS ftStatus;
+    using readBuffer = shared_ptr<char[]>;
+
+    while(true) {
+        gettimeofday(&startTime, NULL);
+        for (int queueChecks = 0; dwRxSize < numberOfBytesToRead; queueChecks++)
+        {
+            // Periodically check for time-out 
+            if (queueChecks % 128 == 0) {
+                struct timeval now;
+                struct timeval elapsed;
+                
+                gettimeofday(&now, NULL);
+                timersub(&now, &startTime, &elapsed);
+
+                if (elapsed.tv_sec > timeout) 
+                    break;
+
+                TRACE << ((queueChecks == 0)? "Number of bytes in D2XX receive-queue: " : ", ") << (int)dwRxSize << endl; 
+
+                ftStatus = FT_GetQueueStatus(handle, &dwRxSize);
+                if (ftStatus != FT_OK)
+                    ftdThrow(ftStatus);
+            }
+        }
+        TRACE << "Got" << dwRxSize << "(of " << numberOfBytesToRead << ")" << endl;
+
+        auto buf = readBuffer(new char[dwRxSize]);
+        ftStatus = FT_Read(handle, buf.get(), dwRxSize, &dwBytesRead);
+        if (ftStatus != FT_OK) 
+            ftdThrow(ftStatus);
+        
+        TRACE   << "Read: " << dwBytesRead << " of " << dwRxSize << " required:" << endl
+                << buf << endl;
+
+        queue->push(string(buf.get()));
+    }
+}

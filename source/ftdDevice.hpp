@@ -5,6 +5,7 @@
 #include <utility>
 #include "ftd2xx.h"
 #include "types.h"
+#include "blocking_queue.hpp"
 
 using namespace std;
 class ftdDevice {
@@ -28,10 +29,13 @@ class ftdDevice {
     bool isFifo245;
     bool isD2XX;
 
+
     protected:
 
     public:
     ftdDevice() { handle=0; }
+    ~ftdDevice(){ FT_Close(handle); handle=0; }
+
     ftdDevice(bool isHighSpeed, FT_DEVICE ftDeviceType, ULONG id,
                          string serialNumber, string description, FT_HANDLE hable);
 
@@ -56,6 +60,9 @@ class ftdDevice {
 
     void evaluateSpecification();
     void open(const openMode &mode);
+    void read(const DWORD &numberOfBytesToRead, string &chunk);
+    void continousRead(const DWORD &numberOfBytesToRead, shared_ptr<blocking_queue<string>> queue);    
+
 };
 
 #endif // FTD_DEVICE_H

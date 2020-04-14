@@ -5,6 +5,7 @@
 #endif
 
 #include <string>
+#include "ftd2xx.h"
 #include "EnumToString.h"
 
 #if (!defined(GENERATE_ENUM_STRINGS))
@@ -15,10 +16,14 @@ typedef struct _parser {
     _parser() {
         isListing=false;
         isSerialNumber=true;
+        isMultiThread=false;
     }
     bool isListing;
     bool isSerialNumber;
+    bool isMultiThread;
     std::string value;
+    DWORD numBytes;
+    WORD capacity;
 } parser;
 
 parser parse(int argc,char *argv[]);

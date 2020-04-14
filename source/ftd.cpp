@@ -75,3 +75,15 @@ void ftd::open(const openMode &mode_,const string &deviceIdentificator) {
         }
     }
 }
+void ftd::startRead(const DWORD &numBytesToRead_, const DWORD &capacity_) {
+    numberOfBytesToReads = numBytesToRead_;
+    capacity = capacity_;
+
+    queue=make_shared<blocking_queue<string>>(capacity);
+
+    std::thread producer(&ftdDevice::continousRead,selectedDevice,numBytesToRead_,queue);
+    producer.join();
+}
+void ftd::getData(string &chunk) {
+    chunk = queue->pop();
+}

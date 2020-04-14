@@ -43,6 +43,7 @@ int main(int argc, char *argv[]) {
             footboard->openByDescription(params.value);
         }
         shared_ptr<ftdDevice> selectedDevice = footboard->get_selectedDevice();
+
         TRACE   << "Device: " << selectedDevice->get_ftStringDeviceType() 
                 << " opened, with:" << endl 
                 << "Serial Number: " << selectedDevice->get_serialNumber()
@@ -62,8 +63,18 @@ int main(int argc, char *argv[]) {
                 << ", Remote wake up: " << selectedDevice->get_isRemoteWakeUp()
                 << ", FIFO 245: " << selectedDevice->get_isFifo245()
                 << ", D2XX: " << selectedDevice->get_isD2XX();
-
-
+        
+        string chunk;
+        if(params.isMultiThread) {
+            footboard->startRead(params.numBytes, params.capacity);
+            while(true) {
+                footboard->getData(chunk);
+            }
+        } else {
+                while(true) {
+                    selectedDevice->read(params.numBytes,chunk);
+                } 
+            }
     } catch(ftdException &ex) {
         EXCEPT(ex,ERROR);
         retCode = -1;

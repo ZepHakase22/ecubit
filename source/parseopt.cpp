@@ -1,8 +1,9 @@
 #include <iostream>
 
-#include "cppopt.hpp"
+
 #include "types.h"
 #include "Log.hpp"
+#include "cppopt.hpp"
 
 parser parse(int argc,char *argv[]) {
 
