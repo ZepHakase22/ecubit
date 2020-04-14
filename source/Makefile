@@ -12,11 +12,12 @@ CC = g++
 CXXFLAGS = -Wall -Wextra -g -I../libftd2xx/release 
 
 app = footboard2PC
+udp = UDPServer
 lib = ../libftd2xx/release/build/libftd2xx.a
 objects = $(app).o ftd.o ftdDevice.o EnumToString.o parseopt.o
 
 $(app): $(objects)
-	$(CC) $(CDBFLAGS) -o $(app) $(objects) $(lib) $(DEPENDENCIES)
+	$(CC) $(CXXFLAGS) -o $(app) $(objects) $(lib) $(DEPENDENCIES)
 
 $(app).o ftd.o: ftd.hpp ftdException.hpp enums.h Log.hpp types.h blocking_queue.hpp
 ftdDevice.o: ftdDevice.hpp blocking_queue.hpp
@@ -25,7 +26,12 @@ parseopt.o: cppopt.hpp
 
 rebuild: clean $(app)
 
-.PHONY: clean
+udp: UDPServer.o
+	$(CC) $(CXXFLAGS) -o $(udp) UDPServer.o $(DEPENDENCIES)
+
+UDPServer.o:
+
+.PHONY: clean 
 clean:
-	-rm -f $(app) $(objects)
+	-rm -f $(app) $(udp) $(objects) UDPServer.o
  

@@ -30,6 +30,14 @@
             "problemMatcher": [
                 "$gcc"
             ]
+        },
+        {
+            "label": "udp",
+            "type": "shell",
+            "command": "make udp",
+            "problemMatcher": [
+                "$gcc"
+            ]
         }
     ]
 }

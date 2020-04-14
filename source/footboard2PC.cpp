@@ -71,10 +71,10 @@ int main(int argc, char *argv[]) {
                 footboard->getData(chunk);
             }
         } else {
-                while(true) {
-                    selectedDevice->read(params.numBytes,chunk);
-                } 
-            }
+            while(true) {
+                selectedDevice->read(params.numBytes,chunk);
+            } 
+        }
     } catch(ftdException &ex) {
         EXCEPT(ex,ERROR);
         retCode = -1;
