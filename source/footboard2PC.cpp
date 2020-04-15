@@ -5,9 +5,11 @@
 #include "ftd.hpp"
 #include "ftdException.hpp"
 #include "types.h"
+#include "udpClient.hpp"
 
 using namespace std;
 using namespace FTDI;
+using namespace udp;
 
 int main(int argc, char *argv[]) {
     int retCode = 0;
@@ -65,23 +67,24 @@ int main(int argc, char *argv[]) {
                 << ", D2XX: " << selectedDevice->get_isD2XX();
         
         string chunk;
+        udp_client client(params.address,params.port);
         if(params.isMultiThread) {
             footboard->startRead(params.numBytes, params.capacity);
             while(true) {
                 footboard->getData(chunk);
+                client.send(chunk);
             }
         } else {
             while(true) {
                 selectedDevice->read(params.numBytes,chunk);
+                client.send(chunk);
             } 
         }
     } catch(ftdException &ex) {
         EXCEPT(ex,ERROR);
         retCode = -1;
         goto end;
-    }
-    // Read 
-    // Write to pc
+    } 
 end:
     TRACE << "========================================================== END ===========================================================" << endl;
     return retCode;

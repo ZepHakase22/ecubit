@@ -24,6 +24,8 @@ typedef struct _parser {
     std::string value;
     DWORD numBytes;
     WORD capacity;
+    std::string address;
+    int port;
 } parser;
 
 parser parse(int argc,char *argv[]);

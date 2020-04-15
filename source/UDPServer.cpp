@@ -52,34 +52,3 @@ int main() {
     return 0; 
 } 
 
-/*
-// Server side implementation of UDP client-server model 
-#include <stdio.h> 
-#include <stdlib.h> 
-#include <unistd.h> 
-#include <string.h> 
-#include <sys/types.h> 
-#include <sys/socket.h> 
-#include <arpa/inet.h> 
- 
-  
-#define PORT     8080 
-  
-// Driver code 
-int main() { 
-      
-      
-      
-    socklen_t len; 
-    ssize_t n;
-    
-    len = sizeof(cliaddr);  //len is value/resuslt 
-  
-    n = recvfrom(sockfd, (char *)buffer, MAXLINE,  
-                MSG_WAITALL, ( struct sockaddr *) &cliaddr, 
-                &len); 
-    buffer[n] = '\0'; 
-    printf("Client : %s\n", buffer); 
-      
-    return 0; 
-*/
