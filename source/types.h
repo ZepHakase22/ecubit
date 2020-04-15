@@ -17,6 +17,9 @@ typedef struct _parser {
         isListing=false;
         isSerialNumber=true;
         isMultiThread=false;
+        port=0;
+        numBytes=0;
+        capacity=0;
     }
     bool isListing;
     bool isSerialNumber;
@@ -25,7 +28,7 @@ typedef struct _parser {
     DWORD numBytes;
     WORD capacity;
     std::string address;
-    int port;
+    uint port;
 } parser;
 
 parser parse(int argc,char *argv[]);

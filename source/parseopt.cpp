@@ -14,27 +14,37 @@ try
 
     cxxopts::Options options(argv[0], "footboard2PC - Send data from footboard to PC via UDP");
     options
-        .custom_help("[-h | --help] [-l | --list] [-s | --serialnumber[=]<serial number> | -d | --description[=]<description>] [--log-level]")
-        .positional_help("[DEBUG|INFO|WARN|ERROR]")
+        .custom_help("OPTIONS: [GENERAL][DEVICE][WI-FI] ")
+        .positional_help("ip-address [ DEBUG|INFO|WARN|ERROR ]")
         .allow_unrecognised_options()
         .show_positional_help();
 
-    options.add_options()
+    options.add_options("GENERAL")
         ("h,help", "This help print message")
         ("l,list", "List the exsisting devices")
-        ("log-level", "The log level", cxxopts::value<std::string>());
+        ("m,usethread", "If present, use threads (default false) ");
 
-    options.add_options("Device")
+    options.add_options("DEVICE")
         ("s,serialnumber", "The device serial number", cxxopts::value<std::string>())
         ("d,description" , "The device description", cxxopts::value<std::string>());
 
-    options.parse_positional({"log-level"});
+    options.add_options("WI-FI")
+        ("b,buffer-size","Set the transmission buffer size",cxxopts::value<ulong>())
+        ("p,port", "The number of the socket port to communicate",cxxopts::value<uint>());
+
+    options.add_options("POSITIONAL") 
+        ("ip-address","The Server Ip Address",cxxopts::value<std::string>())
+        ("level-log", "Required level log",cxxopts::value<std::string>());
+ 
+    options.parse_positional({"ip-address","level-log","positional"});
+
+
 
     auto result = options.parse(argc, argv);
 
     if (result.count("h"))
     {
-        std::cout << options.help({"", "Device"}) << std::endl;
+        std::cout << options.help({"GENERAL", "DEVICE", "WI-FI","POSITIONAL"}) << std::endl;
         exit(0);
     }
 
@@ -45,9 +55,18 @@ try
         return params;
     }
 
-    if (result.count("log-level"))
-    {
-        string debugLevel = result["log-level"].as<std::string>();
+    if (result.count("m")) {
+        params.isMultiThread = true;
+    }
+    if(result.count("ip-address")) {
+        params.address = result["ip-address"].as<std::string>();
+    }
+    if(result.count("port")) {
+        params.port = result["port"].as<uint>();
+    }
+
+    if(result.count("level-log")) {
+        string debugLevel = result["level-log"].as<std::string>();
         if((debugLevel == "DEBUG" || debugLevel == "debug")) {
             LOG_LEVEL(DEBUG);
         } else if(debugLevel == "INFO" || debugLevel == "info") {
@@ -58,7 +77,6 @@ try
             LOG_LEVEL(ERROR);
         }
     }
-
     if (result.count("serialnumber")) {
         params.value = result["serialnumber"].as<std::string>();
         if (result.count("description")) {
@@ -77,7 +95,10 @@ try
     if(params.value.empty()) {
         std::cout << "Missing device Serial Number or Description" << std::endl;
         exit(1);
-    }
+    } else if(params.address.empty()) {
+        std::cout << "Missing Server IP ADDRESS" << std::endl;
+        exit(1);
+    } 
   }
   catch (const cxxopts::OptionException& e)
   {
