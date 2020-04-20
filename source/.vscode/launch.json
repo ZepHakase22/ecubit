@@ -10,10 +10,13 @@
             "request": "launch",
             "program": "${workspaceFolder}/footboard2PC",
             "args": [
-                "--usethread",
                 "-s",
                 "FT4WIND6A",
-                "192.168.1.30",
+                "-f",
+                "65536",
+                "-u",
+                "4096",
+                "192.168.1.42",
                 "DEBUG"
             ],
             "stopAtEntry": false,

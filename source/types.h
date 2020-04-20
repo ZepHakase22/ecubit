@@ -17,16 +17,16 @@ typedef struct _parser {
         isListing=false;
         isSerialNumber=true;
         isMultiThread=false;
-        port=0;
-        numBytes=0;
-        capacity=0;
+        port=80;
+        udp_buffer=2048;
+        fifo_buffer=2048;
     }
     bool isListing;
     bool isSerialNumber;
     bool isMultiThread;
     std::string value;
-    DWORD numBytes;
-    WORD capacity;
+    DWORD udp_buffer;
+    DWORD fifo_buffer;
     std::string address;
     uint port;
 } parser;
@@ -35,6 +35,20 @@ parser parse(int argc,char *argv[]);
 
 template<typename ... Args>
 std::string stringFormat(std::string fmt, Args&& ... args);
+
+inline static void dumpBuffer(unsigned char *buffer, int elements)
+{
+	int j;
+
+	printf(" [");
+	for (j = 0; j < elements; j++)
+	{
+		if (j > 0)
+			printf(", ");
+		printf("0x%02X", (unsigned int)buffer[j]);
+	}
+	printf("]\n");
+}
 
 typedef enum tagOpenMode {
     SERIAL_NUMBER,

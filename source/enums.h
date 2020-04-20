@@ -35,8 +35,7 @@ BEGIN_ENUM(ftdErrors)
     DECL_ENUM_ELEMENT(DEVICE_OPENED,Device already opened by other),
     DECL_ENUM_ELEMENT(NO_SUPPORTED_DEVICE,Device not supported or not configured for D2XX and 245FIFO use),
     DECL_ENUM_ELEMENT(BAD_BLOCK, Data Allocation failure: bad_block),
-    DECL_ENUM_ELEMENT(INVALID_ADDRESS_PORT, "Invalid address or port"),
-    DECL_ENUM_ELEMENT(CANNOT_CREATE_SOCKET, "Unable to create socket")
+    DECL_ENUM_ELEMENT(DEVICE_NOT_POWERED, Device not powered)
 }
 END_ENUM(ftdErrors)
 

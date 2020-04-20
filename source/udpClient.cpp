@@ -15,7 +15,7 @@ udp_client::udp_client(const std::string& addr, int port)
     : f_port(port)
     , f_addr(addr)
 {
-    string decimal_port=""+f_port;;
+    string decimal_port=to_string(f_port);
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;
@@ -23,13 +23,12 @@ udp_client::udp_client(const std::string& addr, int port)
     hints.ai_protocol = IPPROTO_UDP;
 
     int r(getaddrinfo(addr.c_str(), decimal_port.c_str(), &hints, &f_addrinfo));
-    
     if(r != 0)
     {
         if(r == EAI_SYSTEM)  {
             socketThrow(errno);
         } else {
-            addrinfoThrow(r);
+            addrinfoThrow(r);                                                                                                                                                    addrinfoThrow(r);
         }
     }
     f_socket = socket(f_addrinfo->ai_family, SOCK_DGRAM | SOCK_CLOEXEC, IPPROTO_UDP);
@@ -67,6 +66,16 @@ void udp_client::send(const string &msg)
     ssize_t numBytesSent;
 
     numBytesSent=sendto(f_socket, msg.c_str(), msg.size(), 0, f_addrinfo->ai_addr, f_addrinfo->ai_addrlen);
+    if(numBytesSent == (-1)) {
+        socketThrow(errno);
+    }
+}
+
+void udp_client::send(const unsigned char *msg, size_t size)
+{
+    ssize_t numBytesSent;
+
+    numBytesSent=sendto(f_socket, msg, size, 0, f_addrinfo->ai_addr, f_addrinfo->ai_addrlen);
     if(numBytesSent == (-1)) {
         socketThrow(errno);
     }

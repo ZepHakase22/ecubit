@@ -1,6 +1,7 @@
 #include <iostream>
 #include <memory>
 #include <iomanip>
+#include <cstring>
 
 #include "ftd.hpp"
 #include "ftdException.hpp"
@@ -17,7 +18,7 @@ int main(int argc, char *argv[]) {
 
     params = parse(argc,argv);
 
-    TRACE << "========================================================= START ==========================================================";
+    TRACE << "========================================================= START ==========================================================" << endl;
    
     using _footboard = unique_ptr<ftd>;
 
@@ -33,7 +34,8 @@ int main(int argc, char *argv[]) {
                 << ":(" << it->get_ftDeviceType() << ")"
                 << " ID: " <<  it->get_id()
                 << " Serial Number: " << it->get_serialNumber()
-                << " Description: " << it->get_description(); 
+                << " Description: " << it->get_description()
+                << endl; 
             }
         END_LOG
 
@@ -64,24 +66,52 @@ int main(int argc, char *argv[]) {
                 << "Self powered: " << selectedDevice->get_isSelfPowered()
                 << ", Remote wake up: " << selectedDevice->get_isRemoteWakeUp()
                 << ", FIFO 245: " << selectedDevice->get_isFifo245()
-                << ", D2XX: " << selectedDevice->get_isD2XX();
+                << ", D2XX: " << selectedDevice->get_isD2XX() << endl;
         
+        footboard->setFifoBuffer(params.fifo_buffer);
         string chunk;
+
         udp_client client(params.address,params.port);
         if(params.isMultiThread) {
-            footboard->startRead(params.numBytes, params.capacity);
+            footboard->startRead(params.fifo_buffer);
             while(true) {
-                footboard->getData(chunk);
+//                footboard->getData(chunk);
                 client.send(chunk);
             }
         } else {
+            shared_ptr<unsigned char[]> buff;
+            unsigned char *bufToSend = (unsigned char *)calloc(params.udp_buffer,1);
+            uint size = 0;
             while(true) {
-                selectedDevice->read(params.numBytes,chunk);
-                client.send(chunk);
+                uint tmpsize = 0;
+                uint n0 = selectedDevice->read(buff);
+                BEGIN_LOG(DEBUG)
+                    TRACE  << "RECEIVED BUFFER: " << endl;
+                    dumpBuffer(buff.get(),n0);
+                END_LOG
+                uint n = n0;
+                while (n +size >= params.udp_buffer) {
+                    memcpy(bufToSend + size ,buff.get() + tmpsize, params.udp_buffer -size);
+                    BEGIN_LOG(DEBUG)
+                        TRACE  << "BUFFER TO TRANSMIT: " << endl;
+                        dumpBuffer(bufToSend,params.udp_buffer);
+                    END_LOG
+                    client.send(bufToSend,params.udp_buffer);
+                    memset(bufToSend,0,params.udp_buffer);
+                    tmpsize += params.udp_buffer - size;
+                    n -= params.udp_buffer -size;
+                    size = 0;
+                }
+                memcpy(bufToSend+size,buff.get() + tmpsize, n);
+                size += n;
+                BEGIN_LOG(DEBUG)
+                    TRACE  << "PREPAIRED BUFFER: " << endl;
+                    dumpBuffer(bufToSend,size);
+                END_LOG
             } 
         }
     } catch(ftdException &ex) {
-        EXCEPT(ex,ERROR);
+        EXCEPT(ex,ERROR) << endl;
         retCode = -1;
         goto end;
     } 

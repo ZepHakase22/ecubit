@@ -1,6 +1,7 @@
 #include <memory>
 #include <string>
-#include <sys/time.h>
+#include <thread>
+#include <chrono>
 #include "ftdException.hpp"
 #include "ftdDevice.hpp"
 
@@ -75,100 +76,92 @@ void ftdDevice::evaluateSpecification() {
     delete [] Data.Description;
     delete [] Data.SerialNumber;
 }
-void ftdDevice::open(const openMode &mode) {
+void ftdDevice::open(const openMode &mode_) {
     FT_STATUS ftStatus;
 
-    if(mode==SERIAL_NUMBER) {
+    if(mode_==SERIAL_NUMBER) {
         ftStatus = FT_OpenEx((PVOID)serialNumber.c_str(),FT_OPEN_BY_SERIAL_NUMBER,&handle);
     } else {
-        ftStatus = FT_OpenEx((PVOID)description.c_str(),FT_OPEN_BY_SERIAL_NUMBER,&handle);
+        ftStatus = FT_OpenEx((PVOID)description.c_str(),FT_OPEN_BY_DESCRIPTION,&handle);
     }
     if(ftStatus != FT_OK)
         ftdThrow(ftStatus);
+    mode=mode_;
 }
-void ftdDevice::read(const DWORD &numberOfBytesToRead, string &output) {
+void ftdDevice::close() {
+    FT_STATUS ftStatus;
 
-    struct timeval  startTime;
+    ftStatus = FT_Close(handle);
+    if(ftStatus != FT_OK)
+        ftdThrow(ftStatus);
+
+}
+uint ftdDevice::read(shared_ptr<unsigned char[]> &output) {
+
 	DWORD dwRxSize = 0;
     DWORD dwBytesRead = 0;
-    long int timeout = 60; // seconds
     FT_STATUS ftStatus;
-    using readBuffer = shared_ptr<char[]>;
+    using readBuffer = shared_ptr<unsigned char[]>;
+    uint nReset = 0;
+    bool isOn = true;
 
-	gettimeofday(&startTime, NULL);
-	for (int queueChecks = 0; dwRxSize < numberOfBytesToRead; queueChecks++)
+    ftStatus = FT_Purge(handle, FT_PURGE_RX);
+    if(ftStatus != FT_OK) 
+        ftdThrow(ftStatus);
+    DWORD prevDwRxSize = 0;
+    do
 	{
-		// Periodically check for time-out 
-		if (queueChecks % 128 == 0) {
-			struct timeval now;
-			struct timeval elapsed;
-			
-			gettimeofday(&now, NULL);
-			timersub(&now, &startTime, &elapsed);
-
-			if (elapsed.tv_sec > timeout) 
-				break;
-
-            TRACE << ((queueChecks == 0)? "Number of bytes in D2XX receive-queue: " : ", ") << (int)dwRxSize << endl; 
-
-    		ftStatus = FT_GetQueueStatus(handle, &dwRxSize);
-    		if (ftStatus != FT_OK)
-    			ftdThrow(ftStatus);
+        if(!isOn) {
+            close();
+            this_thread::sleep_for(chrono::milliseconds(1));
+            open(mode);
+            LOG(WARN) << "****************************************"" Number of reset " 
+                <<  ++nReset << endl;
+            this_thread::sleep_for(chrono::milliseconds(10));
         }
-	}
 
-    TRACE << "Got" << dwRxSize << "(of " << numberOfBytesToRead << ")" << endl;
+        for(register uint i=0; i<1000; i++) {
+            prevDwRxSize = dwRxSize;
+            ftStatus = FT_GetQueueStatus(handle, &dwRxSize);
+            if (ftStatus != FT_OK) {
+                ftdThrow(ftStatus); 
+            }
+            if(dwRxSize==0 || prevDwRxSize == dwRxSize) {
+                isOn = false;
+                this_thread::sleep_for(chrono::milliseconds(1));
+            } else {
+                isOn = true;
+                break;
+            } 
+        }
+        TRACE   << "Read: " <<  dwRxSize << endl;
+	} while(dwRxSize < bufferSize);
 
-	auto buf = readBuffer(new char[dwRxSize]);
+    if(dwRxSize == 0) {
+        ftdThrow(DEVICE_NOT_POWERED);
+    } 
+	auto buf = readBuffer(new unsigned char[dwRxSize]);
     ftStatus = FT_Read(handle, buf.get(), dwRxSize, &dwBytesRead);
     if (ftStatus != FT_OK) 
         ftdThrow(ftStatus);
     
-    TRACE   << "Read: " << dwBytesRead << " of " << dwRxSize << " required:" << endl
-            << buf << endl;
+    TRACE   << "Read: " << dwBytesRead << " of " << dwRxSize << " required:" << endl;
+    
+    output=buf;
+    return dwBytesRead;
 
-    output= buf.get();
 }
-void ftdDevice::continousRead(const DWORD &numberOfBytesToRead, shared_ptr<blocking_queue<string>> queue) {
-   struct timeval  startTime;
-	DWORD dwRxSize = 0;
-    DWORD dwBytesRead = 0;
-    long int timeout = 60; // seconds
-    FT_STATUS ftStatus;
-    using readBuffer = shared_ptr<char[]>;
-
+void ftdDevice::prepareToRead(const DWORD &capacity) {
+    queue = make_shared<blocking_queue<shared_ptr<unsigned char []>>>(capacity);
+    (this->thContinousRead()).join();
+}
+void ftdDevice::continousRead() {
+    shared_ptr<unsigned char[]> buff;
     while(true) {
-        gettimeofday(&startTime, NULL);
-        for (int queueChecks = 0; dwRxSize < numberOfBytesToRead; queueChecks++)
-        {
-            // Periodically check for time-out 
-            if (queueChecks % 128 == 0) {
-                struct timeval now;
-                struct timeval elapsed;
-                
-                gettimeofday(&now, NULL);
-                timersub(&now, &startTime, &elapsed);
-
-                if (elapsed.tv_sec > timeout) 
-                    break;
-
-                TRACE << ((queueChecks == 0)? "Number of bytes in D2XX receive-queue: " : ", ") << (int)dwRxSize << endl; 
-
-                ftStatus = FT_GetQueueStatus(handle, &dwRxSize);
-                if (ftStatus != FT_OK)
-                    ftdThrow(ftStatus);
-            }
-        }
-        TRACE << "Got" << dwRxSize << "(of " << numberOfBytesToRead << ")" << endl;
-
-        auto buf = readBuffer(new char[dwRxSize]);
-        ftStatus = FT_Read(handle, buf.get(), dwRxSize, &dwBytesRead);
-        if (ftStatus != FT_OK) 
-            ftdThrow(ftStatus);
-        
-        TRACE   << "Read: " << dwBytesRead << " of " << dwRxSize << " required:" << endl
-                << buf << endl;
-
-        queue->push(string(buf.get()));
+        read(buff);
+        queue->push(buff);
     }
+}
+const  shared_ptr<unsigned char[]> &ftdDevice::getData() const {
+    return queue->pop();
 }

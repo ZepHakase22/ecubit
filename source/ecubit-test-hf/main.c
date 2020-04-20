@@ -13,6 +13,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/time.h>
+
 #include "../../libftd2xx/release/ftd2xx.h"
 
 #define BUF_SIZE 0x10
@@ -118,6 +119,7 @@ int main()
 		}
 
 		ftStatus = FT_GetQueueStatus(ftHandle[0], &dwRxSize);
+		this_thread::sleep_for(std::chrono::milliseconds(200));
 		if (ftStatus != FT_OK)
 		{
 			printf("\nFT_GetQueueStatus failed (%d).\n",

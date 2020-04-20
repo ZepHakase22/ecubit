@@ -15,6 +15,7 @@ namespace udp {
         std::string         get_addr() const;
 
         void                 send(const string &msg);
+        void                send(const unsigned char *msg, size_t size);
 
     private:
         int                 f_socket;

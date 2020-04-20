@@ -26,10 +26,11 @@ try
 
     options.add_options("DEVICE")
         ("s,serialnumber", "The device serial number", cxxopts::value<std::string>())
-        ("d,description" , "The device description", cxxopts::value<std::string>());
+        ("d,description" , "The device description", cxxopts::value<std::string>())
+        ("f,FIFO-buffer","Number of bytes read from device",cxxopts::value<ulong>());
 
     options.add_options("WI-FI")
-        ("b,buffer-size","Set the transmission buffer size",cxxopts::value<ulong>())
+        ("u,UDP-buffer","Set the transmission buffer size",cxxopts::value<ulong>())
         ("p,port", "The number of the socket port to communicate",cxxopts::value<uint>());
 
     options.add_options("POSITIONAL") 
@@ -58,6 +59,23 @@ try
     if (result.count("m")) {
         params.isMultiThread = true;
     }
+    if(result.count("f")) {
+        params.fifo_buffer = result["FIFO-buffer"].as<ulong>();
+         if(params.udp_buffer >= 65537) {
+            std::cout << "The requested buffer size exceeds the \
+             maximum FIFO 245 buffer size of 65536" << endl;
+            exit(1);
+        }       
+    }    
+    if(result.count("u")) {
+        params.udp_buffer = result["UDP-buffer"].as<ulong>();
+        if(params.udp_buffer >= 65508) {
+            std::cout << "The requested buffer size exceeds the \
+             maximum UDP buffer size of 65507" << endl;
+            exit(1);
+        }
+    }    
+
     if(result.count("ip-address")) {
         params.address = result["ip-address"].as<std::string>();
     }

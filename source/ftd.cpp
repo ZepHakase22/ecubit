@@ -75,15 +75,14 @@ void ftd::open(const openMode &mode_,const string &deviceIdentificator) {
         }
     }
 }
-void ftd::startRead(const DWORD &numBytesToRead_, const DWORD &capacity_) {
-    numberOfBytesToReads = numBytesToRead_;
-    capacity = capacity_;
-
-    queue=make_shared<blocking_queue<string>>(capacity);
-
-    std::thread producer(&ftdDevice::continousRead,selectedDevice,numBytesToRead_,queue);
-    producer.join();
+void ftd::setFifoBuffer(const ulong &fifoBuffer) {
+    if(selectedDevice!=NULL) {
+        selectedDevice->set_fifoBuffer(fifoBuffer);
+    }
 }
-void ftd::getData(string &chunk) {
-    chunk = queue->pop();
+void ftd::startRead(const DWORD &capacity) {
+    selectedDevice->prepareToRead(capacity);
+}
+void ftd::getData(shared_ptr<unsigned char[]> &output) {
+    output = selectedDevice->getData();
 }

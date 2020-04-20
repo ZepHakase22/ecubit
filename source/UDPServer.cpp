@@ -1,19 +1,46 @@
-#include <stdio.h>
+#include <cstdio>
 #include <stdlib.h>
 #include <cstring>
 #include <netinet/in.h>
+#include <time.h>
+#define __STDC_FORMAT_MACROS
+#include <cinttypes>
 
 
-#define MAXLINE 2048 
 #define PORT 80
 
+inline static uint64_t GetTickCountMs()
+{
+    struct timespec ts;
+
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+
+    return (uint64_t)(ts.tv_nsec / 1000000) + ((uint64_t)ts.tv_sec * 1000ull);
+}
+static void dumpBuffer(unsigned char *buffer, int elements)
+{
+	int j;
+
+	printf(" [");
+	for (j = 0; j < elements; j++)
+	{
+		if (j > 0)
+			printf(", ");
+		printf("0x%02X", (unsigned int)buffer[j]);
+	}
+	printf("]\n");
+}
+
 // Driver code 
-int main() { 
+int main(int , char *argv[]) { 
     int sockfd; 
 
-    char buffer[MAXLINE]; 
+    unsigned char *buffer; 
     struct sockaddr_in servaddr, cliaddr; 
+    ulong length;
 
+    sscanf(argv[1],"%ld",&length);
+    buffer = (unsigned char *)calloc(length,1);
         // Creating socket file descriptor 
     if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) { 
         perror("socket creation failed"); 
@@ -38,17 +65,27 @@ int main() {
     socklen_t len; 
     ssize_t n;
 
+    std::uint64_t tick=GetTickCountMs();
+    ulong transferred=0;
+
     while (true) {
         len = sizeof(cliaddr);  //len is value/resuslt 
 
-        n = recvfrom(sockfd, (char *)buffer, MAXLINE,  
+        n = recvfrom(sockfd, (unsigned char *)buffer, length,  
                     MSG_WAITALL, ( struct sockaddr *) &cliaddr, 
                     &len); 
-        buffer[n] = '\0'; 
-        printf("Client : %s\n", buffer); 
-        
+        printf("Bytes received : %ld\n", n); 
+        dumpBuffer(buffer,n);
+        transferred+=n;
+        if(transferred >= 1000000)
+            break;
+        memset(buffer,0,length);
+
     }
 
+    std::uint64_t tick1=GetTickCountMs();
+    std::uint64_t t=(tick1-tick)/1000;
+    std::printf( "Transferred %ld bytes in %" PRId64 " minutes\n", transferred,t);
     return 0; 
 } 
 

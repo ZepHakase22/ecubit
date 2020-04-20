@@ -11,17 +11,20 @@
 template<typename T>
 class blocking_queue {
 private:
-    size_t _capacity;
+    size_t capacity;
     std::queue<T> _queue;
     std::mutex _mutex;
     std::condition_variable _not_full;
     std::condition_variable _not_empty;
 
 public:
-    inline blocking_queue(size_t capacity) : _capacity(capacity) {
+    inline blocking_queue(size_t capacity_) : capacity(capacity_) {
         // empty
     }
 
+    inline void set_capacity(size_t capacity_) {
+        capacity = capacity_;
+    }
     inline size_t size() const {
         std::unique_lock<std::mutex> lock(_mutex);
         return _queue.size();
@@ -37,7 +40,7 @@ public:
             std::unique_lock<std::mutex> lock(_mutex);
 
             // wait while the queue is full
-            while (_queue.size() >= _capacity) {
+            while (_queue.size() >= capacity) {
                 _not_full.wait(lock);
             }
             std::cout << "pushing element " << elem << std::endl;
@@ -46,7 +49,7 @@ public:
         _not_empty.notify_all();
     }
 
-    inline const T& pop() {
+   inline const T& pop() {
         {
             std::unique_lock<std::mutex> lock(_mutex);
 
