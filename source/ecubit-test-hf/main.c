@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 
+
 #include "../../libftd2xx/release/ftd2xx.h"
 
 #define BUF_SIZE 0x10
@@ -38,12 +39,13 @@ static void dumpBuffer(unsigned char *buffer, int elements)
 
 
 
+
 int main()
 {
 	unsigned char * pcBufRead = NULL;
 	char * 	pcBufLD[MAX_DEVICES + 1];
 	char 	cBufLD[MAX_DEVICES][64];
-	DWORD	dwRxSize = 0;
+	DWORD	dwRxSize =  63448;
 	DWORD  	dwBytesWritten=8192;
 	DWORD   dwBytesRead;
 	FT_STATUS	ftStatus;
@@ -51,9 +53,11 @@ int main()
 	int	iNumDevs = 0;
 	int	i;
 	int	iDevicesOpen = 0;	
-    int queueChecks = 0;
-    long int timeout = 60; // seconds
     struct timeval  startTime;
+    WORD isOn = 1;
+    DWORD prevDwRxSize = 0;
+	DWORD totalBytes=0;
+	WORD nReset = 0;
 	
 	for(i = 0; i < MAX_DEVICES; i++) {
 		pcBufLD[i] = cBufLD[i];
@@ -89,68 +93,70 @@ int main()
 	iDevicesOpen++;
 
 		/* Read */
-   
-	gettimeofday(&startTime, NULL);
-
-	for (queueChecks = 0; 
-			dwRxSize < dwBytesWritten; 
-			queueChecks++)
-	{
-		// Periodically check for time-out 
-		if (queueChecks % 128 == 0)
+    gettimeofday(&startTime, NULL);
+	for(;;) {
+		do
 		{
-			struct timeval now;
-			struct timeval elapsed;
-			
-			gettimeofday(&now, NULL);
-			timersub(&now, &startTime, &elapsed);
-
-			if (elapsed.tv_sec > timeout)
-			{
-				// We've waited too long.  Give up.
-				printf("\nTimed out after %ld seconds\n", elapsed.tv_sec);
-				break;
+			if(!isOn) {
+				FT_Close(ftHandle[0]);
+				if((ftStatus = FT_OpenEx(cBufLD[0], FT_OPEN_BY_SERIAL_NUMBER, &ftHandle[0])) != FT_OK){
+				/* 
+						This can fail if the ftdi_sio driver is loaded
+						use lsmod to check this and rmmod ftdi_sio to remove
+						also rmmod usbserial
+				*/
+					printf("Error FT_OpenEx(%d), device %d\n", (int)ftStatus, i);
+					printf("Use lsmod to check if ftdi_sio (and usbserial) are present.\n");
+					printf("If so, unload them using rmmod, as they conflict with ftd2xx.\n");
+					return 1;
+				}
+				printf("%s %d\n", "****************************************"" Number of reset ", ++nReset);
 			}
 
-			// Display number of bytes D2XX has received
-			printf("%s%d", 
-					queueChecks == 0 ? "Number of bytes in D2XX receive-queue: " : ", ",
+			for(register WORD i=0; i<1000; i++) {
+				prevDwRxSize = dwRxSize;
+				ftStatus = FT_GetQueueStatus(ftHandle[0], &dwRxSize);
+				if (ftStatus != FT_OK) {
+					printf("Error FT_GetQueueStatus(%d)\n", (int)ftStatus);
+				}
+				if(dwRxSize==0 || prevDwRxSize == dwRxSize) {
+					isOn = 0;
+				} else {
+					isOn = 1;
+					break;
+				} 
+			}
+		} while(dwRxSize <  63448);
+
+
+		if(ftStatus == FT_OK) {
+			pcBufRead = realloc(pcBufRead, dwRxSize);
+			memset(pcBufRead, 0x00, dwRxSize);
+//			printf("Calling FT_Read with this read-buffer:\n");
+			ftStatus = FT_Read(ftHandle[0], pcBufRead, dwRxSize, &dwBytesRead);
+			if (ftStatus != FT_OK) {
+				printf("Error FT_Read(%d)\n", (int)ftStatus);
+			}
+			if (dwBytesRead != dwRxSize) {
+				printf("FT_Read only read %d (of %d) bytes\n",
+					(int)dwBytesRead,
 					(int)dwRxSize);
-		}
-
-		ftStatus = FT_GetQueueStatus(ftHandle[0], &dwRxSize);
-		this_thread::sleep_for(std::chrono::milliseconds(200));
-		if (ftStatus != FT_OK)
-		{
-			printf("\nFT_GetQueueStatus failed (%d).\n",
-			(int)ftStatus);
+			}
+//			printf("FT_Read read %d bytes: \n",(int)dwBytesRead);
+			dumpBuffer(pcBufRead, (int)dwBytesRead);
+			totalBytes+=dwBytesRead;
+			printf("Total Bytes read %d \n", totalBytes);
+			if(totalBytes>= 1000000)
+				break;
+		} else {
+			printf("Error FT_GetQueueStatus(%d)\n", (int)ftStatus);	
 		}
 	}
+	struct timeval now;
+	struct timeval elapsed;
+	timersub(&now, &startTime, &elapsed);
+	printf("Time elapsed: %ld\n", elapsed.tv_sec);
 
-	printf("\nGot %d (of %d) bytes.\n", (int)dwRxSize, (int)dwBytesWritten);
-        
-	if(ftStatus == FT_OK) {
-		pcBufRead = realloc(pcBufRead, dwRxSize);
-		memset(pcBufRead, 0x00, dwRxSize);
-		printf("Calling FT_Read with this read-buffer:\n");
-		ftStatus = FT_Read(ftHandle[0], pcBufRead, dwRxSize, &dwBytesRead);
-		if (ftStatus != FT_OK) {
-		printf("Error FT_Read(%d)\n", (int)ftStatus);
-		}
-		if (dwBytesRead != dwRxSize) {
-			printf("FT_Read only read %d (of %d) bytes\n",
-	       (int)dwBytesRead,
-	       (int)dwRxSize);
-		}
-		printf("FT_Read read %d bytes.  Read-buffer is now:\n",
-		(int)dwBytesRead);
-		dumpBuffer(pcBufRead, (int)dwBytesRead);
-		printf("%s test passed.\n", cBufLD[0]);
-	} else {
-		printf("Error FT_GetQueueStatus(%d)\n", (int)ftStatus);	
-	}
-
-	iDevicesOpen = i;
 	/* Cleanup */
 	for(i = 0; i < iDevicesOpen; i++) {
 		FT_Close(ftHandle[0]);

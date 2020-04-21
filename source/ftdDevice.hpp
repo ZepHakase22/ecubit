@@ -32,11 +32,8 @@ namespace FTDI {
         bool isD2XX;
         openMode mode;
         ulong bufferSize;
-        shared_ptr<blocking_queue<shared_ptr<unsigned char[]>>> queue;
-        thread thContinousRead() {
-            return thread([=] {continousRead();});
-        }
-
+        shared_ptr<blocking_queue<readBuffer>> queue;
+        thread *thContinousRead;
 
         protected:
 
@@ -75,7 +72,7 @@ namespace FTDI {
         }
         void prepareToRead(const DWORD &capacity);
         void continousRead();
-        const shared_ptr<unsigned char[]> &getData() const;
+        uint readAsync(shared_ptr<unsigned char[]> &output);
     };
 }
 #endif // FTD_DEVICE_H

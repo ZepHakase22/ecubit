@@ -83,6 +83,9 @@ void ftd::setFifoBuffer(const ulong &fifoBuffer) {
 void ftd::startRead(const DWORD &capacity) {
     selectedDevice->prepareToRead(capacity);
 }
-void ftd::getData(shared_ptr<unsigned char[]> &output) {
-    output = selectedDevice->getData();
+uint ftd::readAsync(shared_ptr<unsigned char[]> &output) {
+    return selectedDevice->readAsync(output);
+}
+uint ftd::read(shared_ptr<unsigned char[]> &output) {
+    return  selectedDevice->read(output);
 }

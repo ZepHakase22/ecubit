@@ -8,6 +8,7 @@
 
 using namespace std;
 
+
 namespace FTDI {
     class ftd {
         private:
@@ -33,7 +34,8 @@ namespace FTDI {
 
         void startRead(const DWORD &capacity_);
         void setFifoBuffer(const ulong &fifoBuffer);
-        void getData(shared_ptr<unsigned char[]> &output);
+        uint readAsync(shared_ptr<unsigned char[]> &output);
+        uint read(shared_ptr<unsigned char[]> &output);
     };
 }
 

@@ -22,7 +22,8 @@ try
     options.add_options("GENERAL")
         ("h,help", "This help print message")
         ("l,list", "List the exsisting devices")
-        ("m,usethread", "If present, use threads (default false) ");
+        ("m,usethread", "If present, use threads (default false) ")
+        ("c,capacity", "In multithread mode is the queue capacity", cxxopts::value<ulong>());
 
     options.add_options("DEVICE")
         ("s,serialnumber", "The device serial number", cxxopts::value<std::string>())
@@ -58,6 +59,9 @@ try
 
     if (result.count("m")) {
         params.isMultiThread = true;
+        if(result.count("c")) {
+            params.queue_capacity=result["capacity"].as<ulong>();
+        }
     }
     if(result.count("f")) {
         params.fifo_buffer = result["FIFO-buffer"].as<ulong>();

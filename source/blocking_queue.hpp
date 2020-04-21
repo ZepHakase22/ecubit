@@ -43,13 +43,12 @@ public:
             while (_queue.size() >= capacity) {
                 _not_full.wait(lock);
             }
-            std::cout << "pushing element " << elem << std::endl;
             _queue.push(elem);
         }
         _not_empty.notify_all();
     }
 
-   inline const T& pop() {
+   inline const T& popAndFront() {
         {
             std::unique_lock<std::mutex> lock(_mutex);
 
@@ -58,12 +57,25 @@ public:
                 _not_empty.wait(lock);
             }
             const T& elem = _queue.front();
-            std::cout << "popping element " << elem << std::endl;
             _queue.pop();
             return elem;
         }
         _not_full.notify_one();
     }
+
+    inline void pop() {
+        {
+            std::unique_lock<std::mutex> lock(_mutex);
+
+            // wait while the queue is empty
+            while (_queue.size() == 0) {
+                _not_empty.wait(lock);
+            }
+            _queue.pop();
+        }
+        _not_full.notify_one();
+    }
+
 
     inline const T& front() {
         std::unique_lock<std::mutex> lock(_mutex);

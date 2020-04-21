@@ -86,6 +86,10 @@ void ftdDevice::open(const openMode &mode_) {
     }
     if(ftStatus != FT_OK)
         ftdThrow(ftStatus);
+    FT_SetTimeouts(handle, 1, 1);
+    FT_SetUSBParameters(handle, 0,64);
+    ftStatus = FT_SetLatencyTimer(handle, 2);
+    FT_SetFlowControl(handle, FT_FLOW_NONE, 0x11, 0x13);
     mode=mode_;
 }
 void ftdDevice::close() {
@@ -152,16 +156,24 @@ uint ftdDevice::read(shared_ptr<unsigned char[]> &output) {
 
 }
 void ftdDevice::prepareToRead(const DWORD &capacity) {
-    queue = make_shared<blocking_queue<shared_ptr<unsigned char []>>>(capacity);
-    (this->thContinousRead()).join();
+    queue = make_shared<blocking_queue<readBuffer>>(capacity);
+    thContinousRead = new thread([=] {continousRead();});
 }
 void ftdDevice::continousRead() {
-    shared_ptr<unsigned char[]> buff;
     while(true) {
-        read(buff);
-        queue->push(buff);
+        shared_ptr<unsigned char[]> buff;
+    
+        readBuffer buffer;
+        uint n=read(buff);
+        buffer.size=n;
+        buffer.buff=buff;
+        queue->push(buffer);
     }
 }
-const  shared_ptr<unsigned char[]> &ftdDevice::getData() const {
-    return queue->pop();
+
+uint ftdDevice::readAsync(shared_ptr<unsigned char[]> &output)  {
+    readBuffer buffer = queue->front();
+    output = buffer.buff;
+    queue->pop();
+    return buffer.size;
 }

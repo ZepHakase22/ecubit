@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 		printf("FT_Open(%d) failed\n", iport);
 		return 1;
 	}
-		
+	FT_SetUSBParameters(ftHandle,0,65536);	
 	ftStatus = FT_SetFlowControl(ftHandle, FT_FLOW_NONE, 0, 0);
 	if(ftStatus != FT_OK) {
 		printf("Failed to set flow control\n");	

@@ -5,6 +5,8 @@
 #endif
 
 #include <string>
+#include <utility>
+#include <memory>
 #include "ftd2xx.h"
 #include "EnumToString.h"
 
@@ -20,6 +22,7 @@ typedef struct _parser {
         port=80;
         udp_buffer=2048;
         fifo_buffer=2048;
+        queue_capacity=2000;
     }
     bool isListing;
     bool isSerialNumber;
@@ -29,7 +32,14 @@ typedef struct _parser {
     DWORD fifo_buffer;
     std::string address;
     uint port;
+    DWORD queue_capacity;
 } parser;
+
+
+typedef struct _readBuffer {
+    uint size;
+    std::shared_ptr<unsigned char[]> buff;
+} readBuffer;
 
 parser parse(int argc,char *argv[]);
 
