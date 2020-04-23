@@ -18,7 +18,7 @@ enum typelog {
     DEBUG,
     INFO,
     WARN,
-    ERROR
+    FAILURE
 };
 
 struct structlog {
@@ -38,7 +38,7 @@ class LOG : public ostream{
                 case DEBUG: label = "DEBUG"; break;
                 case INFO:  label = "INFO "; break;
                 case WARN:  label = "WARN "; break;
-                case ERROR: label = "ERROR"; break;
+                case FAILURE: label = "ERROR"; break;
             }
             return label;
         }

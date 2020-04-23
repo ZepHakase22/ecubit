@@ -7,18 +7,16 @@
 #include "enums.h"
 #include "ftd2xx.h"
 
+
 #define ftdThrow( status ) throw ftdException((ftdErrors)status,__FILE__,__LINE__,__func__)
 #define socketThrow( status ) throw socketException((socketErrors)status,__FILE__,__LINE__,__func__)
+#define socketThrowInfo( status, info ) throw socketException((socketErrors)status,__FILE__,__LINE__,__func__,info)
 #define addrinfoThrow( status ) throw addrinfoException((addrinfoErrors)status,__FILE__,__LINE__,__func__)
 #define ftdThrowInfo( status , info ) throw ftdException((ftdErrors)status,__FILE__,__LINE__,__func__,info)
 #define ftdThrowMsg( message ) throw ftdException(message,__FILE__,__LINE__,__func__)
 #define ftdThrowMsgInfo( message , info ) throw ftdException(message,__FILE__,__LINE__,__func__,info)
 #define TRACE  LOG(INFO)
-#define EXCEPT(ex, mode) LOG(mode)  << endl << #mode            << ": "             << ex.get_status() \
-                                    << " ( " << "\e[01m"      << ex.what()        << "\e[0m ) FILE: " \
-                                    << ex.get_file()    << " FUNC: "        << ex.get_file() \
-                                    << " LINE: "        << ex.get_line()    << " INFO: " \
-                                    << ex.get_info()
+
 
 #define BEGIN_LOG(mode) if(LOGCFG.level <= mode) {
 #define END_LOG }
@@ -93,6 +91,22 @@ namespace FTDI {
         }
         UINT get_status() const { return status; }
      };
+#if defined(_WIN32)
+     inline void EXCEPT(FTDI::ftdException& ex, const typelog& mode) {
+         LOG(mode, cout) << endl << mode << ": " << ex.get_status() \
+             << " ( " << ex.what() << " FILE: " \
+             << ex.get_file() << " FUNC: " << ex.get_file() \
+             << " LINE: " << ex.get_line() << " INFO: " \
+             << ex.get_info() <<endl;
+     }
+#else
+#define EXCEPT(ex, mode) LOG(mode)  << endl << #mode            << ": "             << ex.get_status() \
+                                    << " ( " << "\e[01m"      << ex.what()        << "\e[0m ) FILE: " \
+                                    << ex.get_file()    << " FUNC: "        << ex.get_file() \
+                                    << " LINE: "        << ex.get_line()    << " INFO: " \
+                                    << ex.get_info() << endl
+#endif
+
 
 }
 #endif 

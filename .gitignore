@@ -1,3 +1,6 @@
 **/*.o
+**/*.obj
+**/.vs
+**/x64
 source/footboard2PC
 source/UDPServer

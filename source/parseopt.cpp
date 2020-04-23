@@ -65,7 +65,7 @@ try
     }
     if(result.count("f")) {
         params.fifo_buffer = result["FIFO-buffer"].as<ulong>();
-         if(params.udp_buffer >= 65537) {
+         if(params.fifo_buffer >= 65537) {
             std::cout << "The requested buffer size exceeds the \
              maximum FIFO 245 buffer size of 65536" << endl;
             exit(1);
@@ -96,7 +96,7 @@ try
         } else if(debugLevel == "WARN" || debugLevel == "warn") {
             LOG_LEVEL(WARN);
         } else if(debugLevel == "ERROR" || debugLevel == "error") {
-            LOG_LEVEL(ERROR);
+            LOG_LEVEL(FAILURE);
         }
     }
     if (result.count("serialnumber")) {

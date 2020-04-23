@@ -25,6 +25,7 @@ void ftdDevice::evaluateSpecification() {
 
     Data.Signature1 = 0x00000000;
     Data.Signature2 = 0xffffffff;
+    Data.Version = 0xffffffff;
     std::shared_ptr<char> ptr(new char[256], std::default_delete<char[]>());
     Data.Manufacturer = Data.ManufacturerId = Data.Description = Data.SerialNumber =NULL;
 
@@ -33,7 +34,7 @@ void ftdDevice::evaluateSpecification() {
     Data.Description =  new char[256];
     Data.SerialNumber = new char[256];
  
-    if((Data.ManufacturerId == NULL) || (Data.ManufacturerId == NULL) ||
+    if((Data.Manufacturer == NULL) || (Data.ManufacturerId == NULL) ||
         (Data.SerialNumber == NULL) || (Data.Description == NULL)) {
         delete [] Data.ManufacturerId;
         delete [] Data.Manufacturer;
@@ -46,7 +47,37 @@ void ftdDevice::evaluateSpecification() {
     if(ftStatus != FT_OK) {
         ftdThrow(ftStatus);
     }
-    ftDeviceVersion = (DEVICE_VERSION)Data.Version;
+    if(Data.Version != 0xffffffff)
+        ftDeviceVersion = (DEVICE_VERSION)Data.Version;
+    else {
+        switch (ftDeviceType) {
+        case FTBM:
+            ftDeviceVersion = V_FT232B;
+            break;
+
+        case FT2232C:
+            ftDeviceVersion = V_FT2232;
+            break;
+
+        case FT232R:
+            ftDeviceVersion = V_FT232R;
+            break;
+
+        case FT2232H:
+            ftDeviceVersion = V_FT2232H;
+            break;
+
+        case FT4232H:
+            ftDeviceVersion = V_FT4232H;
+            break;
+
+        case FT232H:
+            ftDeviceVersion = V_FT232H;
+
+        default:
+            ftDeviceVersion = V_FTUNKNOWN;
+        }
+    }
     vendorId = Data.VendorId;
     productId = Data.ProductId;
     manufacturer = string(Data.Manufacturer);
@@ -86,10 +117,6 @@ void ftdDevice::open(const openMode &mode_) {
     }
     if(ftStatus != FT_OK)
         ftdThrow(ftStatus);
-    FT_SetTimeouts(handle, 1, 1);
-    FT_SetUSBParameters(handle, 0,64);
-    ftStatus = FT_SetLatencyTimer(handle, 2);
-    FT_SetFlowControl(handle, FT_FLOW_NONE, 0x11, 0x13);
     mode=mode_;
 }
 void ftdDevice::close() {
@@ -113,7 +140,7 @@ uint ftdDevice::read(shared_ptr<unsigned char[]> &output) {
     if(ftStatus != FT_OK) 
         ftdThrow(ftStatus);
     DWORD prevDwRxSize = 0;
-    do
+   do
 	{
         if(!isOn) {
             close();
@@ -139,9 +166,9 @@ uint ftdDevice::read(shared_ptr<unsigned char[]> &output) {
             } 
         }
         TRACE   << "Read: " <<  dwRxSize << endl;
-	} while(dwRxSize < bufferSize);
+	} while(dwRxSize <= bufferSize);
 
-    if(dwRxSize == 0) {
+     if(dwRxSize == 0) {
         ftdThrow(DEVICE_NOT_POWERED);
     } 
 	auto buf = readBuffer(new unsigned char[dwRxSize]);

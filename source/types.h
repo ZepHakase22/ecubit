@@ -13,6 +13,10 @@
 #if (!defined(GENERATE_ENUM_STRINGS))
 #define LOG_LEVEL(mode) LOGCFG.headers = false; \
                         LOGCFG.level = mode; 
+#if (defined _WIN32)
+typedef UINT uint;
+typedef ULONG ulong;
+#endif
 
 typedef struct _parser {
     _parser() {
@@ -93,7 +97,8 @@ BEGIN_ENUM(DEVICE_VERSION)
     DECL_ENUM_ELEMENT(V_FT232R,Rev 6 (FT232R) extensions),
     DECL_ENUM_ELEMENT(V_FT2232H,Rev 7 (FT2232H) Extensions),
     DECL_ENUM_ELEMENT(V_FT4232H,Rev 8 (FT4232H) Extensions),
-    DECL_ENUM_ELEMENT(V_FT232H,Rev 9 (FT232H) Extensions)
+    DECL_ENUM_ELEMENT(V_FT232H,Rev 9 (FT232H) Extensions),
+    DECL_ENUM_ELEMENT(V_FTUNKNOWN,Unknown version)
 }
 END_ENUM(DEVICE_VERSION);
 

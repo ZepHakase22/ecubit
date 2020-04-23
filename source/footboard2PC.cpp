@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
 
     params = parse(argc,argv);
 
-    TRACE << "========================================================= START ==========================================================" << endl;
+    LOG(INFO) << "========================================================= START ==========================================================" << endl;
    
     using _footboard = unique_ptr<ftd>;
 
@@ -47,7 +47,6 @@ int main(int argc, char *argv[]) {
             footboard->openByDescription(params.value);
         }
         shared_ptr<ftdDevice> selectedDevice = footboard->get_selectedDevice();
-
         TRACE   << "Device: " << selectedDevice->get_ftStringDeviceType() 
                 << " opened, with:" << endl 
                 << "Serial Number: " << selectedDevice->get_serialNumber()
@@ -67,7 +66,6 @@ int main(int argc, char *argv[]) {
                 << ", Remote wake up: " << selectedDevice->get_isRemoteWakeUp()
                 << ", FIFO 245: " << selectedDevice->get_isFifo245()
                 << ", D2XX: " << selectedDevice->get_isD2XX() << endl;
-        
         footboard->setFifoBuffer(params.fifo_buffer);
 
         udp_client client(params.address,params.port);
@@ -90,7 +88,7 @@ int main(int argc, char *argv[]) {
                 TRACE  << "RECEIVED BUFFER: " << endl;
                 dumpBuffer(buff.get(),n0);
             END_LOG
-            uint n = n0;
+                uint n = n0;
             while (n +size >= params.udp_buffer) {
                 memcpy(bufToSend + size ,buff.get() + tmpsize, params.udp_buffer -size);
                 BEGIN_LOG(DEBUG)
@@ -111,12 +109,10 @@ int main(int argc, char *argv[]) {
             END_LOG
         } 
     } catch(ftdException &ex) {
-        EXCEPT(ex,ERROR) << endl;
+        EXCEPT(ex, FAILURE);
         retCode = -1;
         goto end;
-    } catch(exception &e) {
-        int a=0;
-    }
+    } 
 end:
     TRACE << "========================================================== END ===========================================================" << endl;
     return retCode;

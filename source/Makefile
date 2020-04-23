@@ -9,11 +9,11 @@ else
 endif
 
 CC = g++
-CXXFLAGS = -Wall -Wextra -g -I../libftd2xx/release 
+CXXFLAGS = -Wall -Wextra -g -I../libftd2xxW
 
 app = footboard2PC
 udp = UDPServer
-lib = ../libftd2xx/release/build/libftd2xx.a
+lib = ../libftd2xxW/Static/amd64/ftd2xx.lib
 objects = $(app).o ftd.o ftdDevice.o EnumToString.o parseopt.o udpClient.o
 
 $(app): $(objects)
