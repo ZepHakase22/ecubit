@@ -73,6 +73,7 @@ void ftdDevice::evaluateSpecification() {
 
         case FT232H:
             ftDeviceVersion = V_FT232H;
+            break;
 
         default:
             ftDeviceVersion = V_FTUNKNOWN;

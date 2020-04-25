@@ -3,4 +3,8 @@
 **/.vs
 **/x64
 source/footboard2PC
+source/footboard2PC.d
 source/UDPServer
+source/UDPServer.d
+source/footboard2PChf
+source/footboard2PChf.d
