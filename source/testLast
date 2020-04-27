@@ -1,0 +1,12 @@
+if  test -f ./lastVersion
+then
+  version=`cat lastVersion`
+  if test "$version" = "$1" 
+  then
+    echo no
+  else
+    echo remove
+  fi
+else
+  echo remove
+fi

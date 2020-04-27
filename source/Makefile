@@ -1,5 +1,6 @@
 DEPENDENCIES := -lpthread
 UNAME := $(shell uname)
+LAST := $(shell ./testLast $1)
 
 # Assume target is Mac OS if build host is Mac OS; any other host targets Linux
 ifeq ($(UNAME), Darwin)
@@ -18,53 +19,90 @@ apphf = $(app)hf
 apphfdll = $(apphf)dll
 apphfd = $(apphf).d
 apphfdlld = $(apphfdll).d
-objectshf = $(apphf).o ftdhf.o ftdDevicehf.o EnumToStringhf.o parseopthf.o udpClienthf.o
+objectshf = $(objects)
 
 udp = UDPServer
 udpd = $(udp).d
 objectsudp = $(udp).o
 
 CXXFLAGS = -I../libftd2xx/release
-RELEASE = -O3
 DEBUG = -Wall -Wextra -g
 lib = ../libftd2xx.beta/release/build/libftd2xx.a
 
 CC = arm-linux-gnueabihf-g++
 libhf = ../libftd2xxhf/release/build/libftd2xx.a
 
-DYNAMIC_LINK_OPTIONS := -Wl,-rpath
+DYNAMIC_LINK_OPTIONS := -Wl,-rpath /usr/local/lib
 
+linux linuxdll udp : RELEASE = -O3 -s
+raspbian raspbiandll : RELEASE = -Os -s
 linux linuxdll raspbian raspbiandll udp : FLAGS = $(RELEASE)
 linux.d linuxdll.d raspbian.d raspbiandll.d udp.d : FLAGS = $(DEBUG)
+raspbian raspbiandll raspbian.d raspbiandll.d: CXX = $(CC)
 
-all: linux raspbian udp 
-debug: linux.d raspbian.d udp.d
-dll: linuxdll raspbiandll udp
-dlldebug: linuxdll.d raspbiandll.d udp.d 
+all: 
+	make linux
+	make raspbian
+	make udp
+	make linux.d 
+	make raspbian.d 
+	make udp.d
+	make raspbiandll
+	make raspbiandll.d
+
+release:
+	make linux
+	make raspbian
+	make udp
+	make raspbiandll
+
+debug: 
+	make linux.d 
+	make raspbian.d 
+	make udp.d
+	make raspbiandll.d
+
+static:
+	make linux
+	make raspbian
+	make udp
+
+staticdebug:
+	make linux.d
+	make raspbian.d
+	make udp.d
+
+dll: 
+	make linuxdll 
+	make raspbiandll 
+
+dlldebug: 
+	make linuxdll.d 
+	make raspbiandll.d 
 
 $(app): $(objects)
 	$(CXX) $(CXXFLAGS) $(RELEASE) -o $(app) $(objects) $(lib) $(DEPENDENCIES)
 
 $(appdll): $(objects)
-	$(CXX) $(CXXFLAGS) $(RELEASE) -lftd2xx -o $(appdll) $(objects) $(DYNAMIC_LINK_OPTIONS) $(DEPENDENCIES)
+	$(CXX) -o $(appdll) $(CXXFLAGS) $(RELEASE) $(objects) -lftd2xx $(DEPENDENCIES) $(DYNAMIC_LINK_OPTIONS) 
 
 $(appd): $(objects)
 	$(CXX) $(CXXFLAGS) $(DEBUG) -o $(appd) $(objects) $(lib) $(DEPENDENCIES)
 
 $(appdlld): $(objects)
-	$(CXX) $(CXXFLAGS) $(DEBUG) -lftd2xx -o $(appdlld) $(objects) $(DYNAMIC_LINK_OPTIONS) $(DEPENDENCIES)
+	$(CXX) $(CXXFLAGS) $(DEBUG) -o $(appdlld) $(objects) -lftd2xx $(DEPENDENCIES) $(DYNAMIC_LINK_OPTIONS)
 
-$(apphf): $(objectshf)
-	$(CC) $(CXXFLAGS) $(RELEASE) -o $(apphf) $(objectshf) $(libhf) $(DEPENDENCIES)
+$(apphf): $(objects)
+	$(CXX) $(CXXFLAGS) $(RELEASE) -o $(apphf) $(objects) $(libhf) $(DEPENDENCIES)
 
-$(apphfdll): $(objectshf)
-	$(CC) $(CXXFLAGS) $(RELEASE) -lftd2xx -o $(apphfdll) $(objectshf) $(DYNAMIC_LINK_OPTIONS) $(DEPENDENCIES)
-
+$(apphfdll): $(objects)
+	$(CXX) $(CXXFLAGS) $(RELEASE) -o $(apphfdll) $(objects) -L/usr/local/lib/hf -lftd2xx $(DEPENDENCIES)
+	
 $(apphfd): $(objectshf)
-	$(CC) $(CXXFLAGS) $(DEBUG) -o $(apphfd) $(objectshf) $(libhf) $(DEPENDENCIES)
+	$(CXX) $(CXXFLAGS) $(DEBUG) -o $(apphfd) $(objectshf) $(libhf) $(DEPENDENCIES)
 
 $(apphfdlld): $(objectshf)
-	$(CC) $(CXXFLAGS) $(DEBUG) -lftd2xx -o $(apphfdlld) $(objectshf) $(DYNAMIC_LINK_OPTIONS) $(DEPENDENCIES)
+	$(CXX) $(CXXFLAGS) $(DEBUG) -o $(apphfdlld) $(objects) -L/usr/local/lib/hf -lftd2xx $(DEPENDENCIES)
 
 $(udp): $(objectsudp)
 	$(CXX) $(CXXFLAGS) $(RELEASE) -o $(udp) $(objectsudp) $(DEPENDENCIES)
@@ -75,73 +113,81 @@ $(udpd): $(objectsudp)
 $(objects): 
 	$(CXX) $(CXXFLAGS) $(FLAGS) -c $< -o $@
 
-$(objectshf): 
-	$(CC) $(CXXFLAGS) $(FLAGS) -c $< -o $@
-
 $(objectsudp):
 	$(CXX) -c $< -o $@
 
-footboard2PC.o footboard2PChf.o: footboard2PC.cpp ftd.hpp ftdException.hpp enums.h Log.hpp types.h blocking_queue.hpp udpClient.hpp  
-ftd.o ftdhf.o: ftd.cpp ftd.hpp ftdException.hpp enums.h Log.hpp types.h blocking_queue.hpp udpClient.hpp
-ftdDevice.o ftdDevicehf.o: ftdDevice.cpp ftdDevice.hpp blocking_queue.hpp enums.h
-EnumToString.o EnumToStringhf.o: EnumToString.cpp enums.h EnumToString.h
-parseopt.o parseopthf.o: parseopt.cpp cppopt.hpp
-udpClient.o udpClienthf.o: udpClient.cpp enums.h ftdException.hpp udpClient.hpp
+footboard2PC.o: footboard2PC.cpp ftd.hpp ftdException.hpp enums.h Log.hpp types.h blocking_queue.hpp udpClient.hpp  
+ftd.o: ftd.cpp ftd.hpp ftdException.hpp enums.h Log.hpp types.h blocking_queue.hpp udpClient.hpp
+ftdDevice.o: ftdDevice.cpp ftdDevice.hpp blocking_queue.hpp enums.h
+EnumToString.o: EnumToString.cpp enums.h EnumToString.h
+parseopt.o: parseopt.cpp cppopt.hpp
+udpClient.o: udpClient.cpp enums.h ftdException.hpp udpClient.hpp
 UDPServer.o: UDPServer.cpp
 
 rebuild: clean all
+rebuild.r: clean release
 rebuild.d: clean debug
-rebuilddll: clean dll
-rebuilddll.d: clean dlldebug
+rebuild.s: clean static
+rebuild.sd: clean staticdebug
+rebuild.dl: clean dll
+rebuild.dd: clean dlldebug
 
-linux: rmdebug rmreleasedll rmdebugdll $(app)
+linux: cleanlinux $(app)
 
-raspbian: rmdebughf rmreleasedllhf rmdebughdllf $(apphf)
+linux.d: cleanlinuxd $(appd)
+
+linuxdll: cleanlinuxdll $(appdll)
+
+linuxdll.d: cleanlinuxdlld $(appdlld)
+
+raspbian: cleanraspbian $(apphf)
+
+raspbian.d: cleanraspbiand $(apphfd)
+
+raspbiandll: cleanraspbiandll $(apphfdll)
+
+raspbiandll.d: cleanraspbiandlld $(apphfdlld)
 
 udp: rmdebugudp $(udp)
 
-linux.d: rmrelease rmreleasedll rmdebugdll $(appd)
-
-raspbian.d: rmreleasehf rmreleasedllhf rmdebugdllhf $(apphfd)
-
 udp.d: rmreleaseudp $(udpd)
-
-linuxdll: rmdebugdll rmrelease rmdebug $(appdll)
-
-linuxdll.d: rmreleasedll rmrelease rmdebug $(appdlld)
-
-raspbiandll: rmdebugdllhf rmreleasehf rmdebughf $(apphfdll)
-
-raspbiandll.d: rmreleasedllhf rmreleasehf rmdebughf $(apphfdlld)
 
 .PHONY: clean 
 clean:
-	-rm -f $(app) $(objects) $(apphf) $(objectshf) $(udp) $(objectsudp) \
-	$(appd) $(apphfd) $(udpd) $(appdll) $(appdlld) $(apphfdll) $(apphfdlld)
+	@rm -f $(app) $(objects) $(apphf) $(udp) $(objectsudp) $(appd) $(apphfd) \
+		$(udpd) $(appdll) $(appdlld) $(apphfdll) $(apphfdlld)
 
-rmdebug:
-	@if [ -f $(appd) ]; then rm -f $(objects); fi
+cleanlinux:
+	@if [ $(shell ./testLast linux) = remove ]; then rm -f $(objects); fi; 
+	@echo linux > lastVersion
 
-rmdebugdll:
-	@if [ -f $(appdlld) ]; then rm -f $(objects); fi
+cleanlinuxd:
+	@if [ $(shell ./testLast linuxd) = remove ]; then rm -f $(objects); fi; 
+	@echo linuxd > lastVersion
 
-rmrelease:
-	@if [ -f $(app) ]; then rm -f $(objects); fi
+cleanlinuxdll:
+	@if [ $(shell ./testLast linuxdll) = remove ]; then rm -f $(objects); fi; 
+	@echo linuxdll > lastVersion
 
-rmreleasedll:
-	@if [ -f $(appdll) ]; then rm -f $(objects); fi
+cleanlinuxdlld:
+	@if [ $(shell ./testLast linuxdlld) = remove ]; then rm -f $(objects); fi; 
+	@echo linuxdlld > lastVersion
 
-rmdebughf:
-	@if [ -f $(apphfd) ]; then rm -f $(objectshf); fi
+cleanraspbian:
+	@if [ $(shell ./testLast raspbian) = remove ]; then rm -f $(objects); fi; 
+	@echo raspbian > lastVersion
 
-rmdebugdllhf:
-	@if [ -f $(apphfdlld) ]; then rm -f $(objectshf); fi
+cleanraspbiand:
+	@if [ $(shell ./testLast raspbiand) = remove ]; then rm -f $(objects); fi; 
+	@echo raspbiand > lastVersion
 
-rmreleasehf:
-	@if [ -f $(apphf) ]; then rm -f $(objectshf); fi
+cleanraspbiandll:
+	@if [ $(shell ./testLast raspbiandll) = remove ]; then rm -f $(objects); fi; 
+	@echo raspbiandll > lastVersion
 
-rmreleasedllhf:
-	@if [ -f $(apphfdll) ]; then rm -f $(objectshf); fi
+cleanraspbiandlld:
+	@if [ $(shell ./testLast raspbiandlld) = remove ]; then rm -f $(objects); fi; 
+	@echo raspbiandlld > lastVersion
 
 rmdebugudp:
 	@if [ -f $(udpd) ]; then rm -f $(objectsudp); fi
