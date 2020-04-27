@@ -24,8 +24,8 @@ typedef struct _parser {
         isSerialNumber=true;
         isMultiThread=false;
         port=80;
-        udp_buffer=2048;
-        fifo_buffer=2048;
+        udp_buffer=4096;
+        fifo_buffer=4096;
         queue_capacity=2000;
     }
     bool isListing;

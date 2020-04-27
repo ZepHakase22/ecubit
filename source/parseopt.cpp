@@ -23,20 +23,20 @@ try
         ("h,help", "This help print message")
         ("l,list", "List the exsisting devices")
         ("m,usethread", "If present, use threads (default false) ")
-        ("c,capacity", "In multithread mode is the queue capacity", cxxopts::value<ulong>());
+        ("c,capacity", "If usethread is the queue capacity (default 2000)", cxxopts::value<ulong>());
 
     options.add_options("DEVICE")
         ("s,serialnumber", "The device serial number", cxxopts::value<std::string>())
         ("d,description" , "The device description", cxxopts::value<std::string>())
-        ("f,FIFO-buffer","Number of bytes read from device",cxxopts::value<ulong>());
+        ("f,FIFO-buffer","Number of bytes read from device (default 4096)",cxxopts::value<ulong>());
 
     options.add_options("WI-FI")
-        ("u,UDP-buffer","Set the transmission buffer size",cxxopts::value<ulong>())
-        ("p,port", "The number of the socket port to communicate",cxxopts::value<uint>());
+        ("u,UDP-buffer","Set the transmission buffer size (default 4096)",cxxopts::value<ulong>())
+        ("p,port", "Socket port to communicate (default 80)",cxxopts::value<uint>());
 
     options.add_options("POSITIONAL") 
         ("ip-address","The Server Ip Address",cxxopts::value<std::string>())
-        ("level-log", "Required level log",cxxopts::value<std::string>());
+        ("level-log", "Required level log (default WARN)",cxxopts::value<std::string>());
  
     options.parse_positional({"ip-address","level-log","positional"});
 

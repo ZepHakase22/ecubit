@@ -4,16 +4,12 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "make",
+            "label": "All",
             "type": "shell",
-            "command": "make -j 8",
+            "command": "make",
             "problemMatcher": [
                 "$gcc"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            ]
         },
         {
             "label": "clean",
@@ -24,17 +20,69 @@
             ]
         },
         {
-            "label": "rebuild",
+            "label": "release",
             "type": "shell",
-            "command": "make rebuild",
+            "command": "make release",
             "problemMatcher": [
                 "$gcc"
             ]
         },
         {
-            "label": "udp",
+            "label": "debug",
             "type": "shell",
-            "command": "make udp",
+            "command": "make debug",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "static",
+            "type": "shell",
+            "command": "make static",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "static debug",
+            "type": "shell",
+            "command": "make staticdebug",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "dll",
+            "type": "shell",
+            "command": "make dll",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "dll debug",
+            "type": "shell",
+            "command": "make dlldebug",
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "footboard2PC debug",
+            "type": "shell",
+            "command": "make linux.d",
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "udp debug",
+            "type": "shell",
+            "command": "make udp.d",
             "problemMatcher": [
                 "$gcc"
             ]
