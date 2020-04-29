@@ -74,6 +74,8 @@ void ftd::open(const openMode &mode_,const string &deviceIdentificator) {
             break;
         }
     }
+    if(selectedDevice == NULL)
+        ftdThrow(INVALID_SERIALNO_OR_DESC);
 }
 void ftd::setFifoBuffer(const ulong &fifoBuffer) {
     if(selectedDevice!=NULL) {
