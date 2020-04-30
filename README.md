@@ -20,8 +20,7 @@ you prefer.
 
 To erase 
 
-file:///home/zep/Pictures/Erase.png
-
+![image info](./Pictures/Erase.png)
 ### Setup
 
 ### Program Configuration
