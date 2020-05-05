@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd ~
+cd ~/Programs/footboard2PC/downloads
 tar xvf gcc-9.2.0-armhf-raspbian.tar.bz2
 rm gcc-9.2.0-armhf-raspbian.tar.bz2
 sudo mv gcc-9.2.0 /opt

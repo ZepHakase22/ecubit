@@ -110,7 +110,4 @@ sudo rm -rf gcc_all
 #Transferring files on raspberry
 
 cd /opt
-tar -cjvf ~/gcc-9.2.0-armhf-raspbian.tar.bz2 gcc-9.2.0
-cd ~
-scp ~/gcc-9.2.0-armhf-raspbian.tar.bz2 pi@192.168.1.60:~
-rm ~/gcc-9.2.0-armhf-raspbian.tar.bz2
+tar -cjvf ~/Programs/footboard2PC/downloads/gcc-9.2.0-armhf-raspbian.tar.bz2 gcc-9.2.0

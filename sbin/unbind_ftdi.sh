@@ -13,4 +13,4 @@ for DEVICE in ${BOUND_DEVICES}; do
 done
 
 echo "$USBID" > /sys/bus/usb/drivers/ftdi_sio/unbind
-echo "$USBID" >/home/zep/unbind_ftdi
+echo "$USBID" >/home/pi/unbind_ftd2pc

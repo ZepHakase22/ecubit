@@ -1,0 +1,35 @@
+#!/bin/bash
+
+if [ "$1" == -a ]; then
+    all=yes
+    shift
+elif [ "$1" == -s ]; then
+    service=yes
+    shift
+elif [ "$1" == -n ]; then
+    network=yes
+fi
+
+version=$1
+
+if  [ -z ${version} ]; then
+    echo "Version parameter must be assigned"
+    echo "USAGE: 
+        rasp-setup [-a] [-s] [-n] version"
+    exit 1
+else
+   wget "https://github.com/ZepHakase22/ecubit/releases/download/v$version/initialize-footboard2hf"
+   chmod +x ./initialize-footboard2hf
+   ./initialize-footboard2hf $version
+fi
+if ! [ -z ${all} ]; then
+    create-service
+    create-network
+    exit 0
+elif ! [ -z ${service} ]; then
+    create-service
+fi
+if ! [ -z ${network}]; then
+    create-network
+fi
+exit 0

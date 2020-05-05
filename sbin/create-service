@@ -1,0 +1,294 @@
+#!/bin/bash
+
+commandLine="ftd2pc "
+executableType="static"
+re='^[0-9]+$'
+
+valid_ip()
+{
+    local  ip=$1
+    local  stat=1
+
+    if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        OIFS=$IFS
+        IFS='.'
+        ip=($ip)
+        IFS=$OIFS
+        [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 \
+            && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
+        stat=$?
+    fi
+    return $stat
+}
+function valid_type()
+{
+    local programType=$1
+    local stat=1
+
+    local types='
+        STATIC
+        static
+        DYNAMIC
+        dynamic
+    '
+    for tt in $types
+    do
+        if [ $programType = $tt ]; then
+            stat=0
+            break
+        fi
+    done
+    return $stat
+}
+function valid_logLevel()
+{
+    local logLevel=$1
+    local stat=1
+
+    local levels='
+        DEBUG
+        debug
+        INFO
+        info
+        WARN
+        warn
+        ERROR
+        error
+    '
+    for ll in $levels
+    do
+        if [ $logLevel == $ll ]; then
+            stat=0
+            break
+        fi
+    done
+    return $stat
+}
+
+go() {
+    opt="$1"
+    if ! [ -z ${opt} ]; then
+        if [ ${opt} == "OBSN" ] && [ -z "${description}"]; then
+            echo "Enter the Serial Number: possible vales are"
+            while read -r line ; do
+                echo "$line"
+            done < <(grep -Po 'Serial Number: \K[^ ]+'<<<`ftd2pc -l`)
+            read var
+            if ! [ -z "${var}" ]; then
+                serialNumber="-s "${var}" "
+            else
+                serialNumber=""
+            fi
+        elif [ ${opt} == "OBD" ] && [ -z "${serialNumber}" ]; then
+            echo "Enter the Device Description:possible values are"
+            while read -r line ; do
+                echo "$line"
+            done < <(grep -Po 'Description: \K[^\n]+'<<<`ftd2pc -l`)
+            read var
+            if ! [ -z "${var}" ]; then
+                description="-d "${var}" "
+            else
+                description=""
+            fi
+        elif [ ${opt} == "UT" ]; then
+            echo "Enter if want use thread (yes/no)"
+            read var
+            if [ ${var} == "yes" ]; then
+                useThread="-m "
+            else
+                useThread=""
+                capacity=""
+            fi
+        elif [ ${opt} == "C" ] && [ "${useThread}" == "-m " ]; then
+            echo "Enter the Queue Capacity:"
+            read var
+            if ! [ -z "${var}" ]; then
+                if ! [[ $var =~ $re ]] ; then
+                    echo "error: Not a number. Press any key and repeat"
+                    read
+                else
+                    capacity="-c "${var}" "
+                fi
+            else
+                capacity=""
+            fi
+        elif [ ${opt} == "FB" ]; then
+            echo "Enter the Fifo Buffer Size:"
+            read var
+            if ! [ -z "${var}" ]; then
+                if ! [[ $var =~ $re ]] ; then
+                    echo "error: Not a number. Press any key and repeat"
+                    read
+                else
+                    fifoBuffer="-f "${var}" "
+                fi
+            else
+                fifoBuffer=""
+            fi
+        elif [ ${opt} == "UB" ]; then
+            echo "Enter the UDP Buffer Size:"
+            read var
+            if ! [ -z "${var}" ]; then
+                if ! [[ $var =~ $re ]] ; then
+                    echo "error: Not a number. Press any key and repeat"
+                    read
+                else
+                    udpBuffer="-u "${var}" "
+                fi
+            else
+                udpBuffer=""
+            fi
+        elif [ ${opt} == "PN" ]; then
+            echo "Enter the UDP Port Listening:"
+            read var
+            if ! [ -z "${var}" ]; then
+                if ! [[ $var =~ $re ]] ; then
+                    echo "error: Not a number. Press any key and repeat"
+                    read
+                else
+                    portNumber="-p "${var}" "
+                fi
+            else
+                portNumber=""
+            fi
+        elif [ ${opt} == "IA" ]; then
+            echo -n "Enter the Server IP Address:"
+            if ! [ -z "${ipAddress}" ]; then
+                echo "default ${ipAddress}"
+            else
+                echo ""
+            fi
+            read var
+            if ! [ -z "${var}" ]; then
+                if valid_ip ${var} ; then
+                    ipAddress=${var}" "
+                else
+                    echo "error: Not a ip address. Press any key and repeat"
+                    read
+                fi
+            fi
+        elif [ ${opt} == "LL" ]; then
+            echo "Enter the log level (DEBUG/INFO/WARN/ERROR):"
+            read var
+            if ! [ -z "${var}" ]; then
+                if valid_logLevel $var; then
+                    logLevel=${var}" "
+                else
+                    echo "error: Not a log level. Press any key and repeat"
+                    read
+                fi
+            else
+                logLevel=""
+            fi
+        elif [ ${opt} == "ET" ]; then
+            echo "Enter executable type (static/dynamic):"
+            read var
+            if ! [ -z "${var}" ]; then
+                if valid_type $var; then
+                    executableType=${var}
+                else
+                    echo "error: Not a valid type. Press any key and repeat"
+                    read
+                fi
+            else
+                executableType=""
+            fi
+        elif [ ${opt} == "CL" ]; then
+            if [[ ! "${serialNumber}" && ! "${description}" ]] || [ ! "${ipAddress}" ]; then
+                echo "IP Address cannot be null or at least one of the Serial Number and Description cannot be null"
+                select=""
+            else
+                options="${serialNumber}${description}${useThread}${capacity}${fifoBuffer}${udpBuffer}${portNumber}${ipAddress}${logLevel}"
+            fi
+        fi
+    fi
+}
+
+menu()
+{
+#selection menu
+until [ "$select" = "11" ]; do
+    clear
+	echo "FTDI service installation"
+	echo ""
+	echo " 1 = Open By Serial Number"
+	echo " 2 = Open By Description"
+	echo " 3 = Use Threads (yes/no) default = no"
+	echo " 4 = Capacity default = 2000"
+	echo " 5 = FIFO Buffer default = 4096"
+	echo " 6 = UDP Buffer default = 4096"
+	echo " 7 = Port Number default = 80"
+	echo " 8 = IP Address"
+	echo " 9 = Log level (DEBUG/INFO/WARN/ERROR) default = WARN"
+ 	echo "10 = Use static/dynamic libraries default = static"
+    echo "11 = exit"
+    echo ""
+	echo -n "Select an Option:"
+	read select
+	case ${select} in
+	1) clear ; go "OBSN" ;; #Open by serial number (mask option 2)
+	2) clear ; go "OBD"  ;; #Open by Description (mask option 1)
+    3) clear ; go "UT"   ;; #Use Thread
+    4) clear ; go "C"    ;; #Capacity
+    5) clear ; go "FB"   ;; #FIFO BUFFER size
+    6) clear ; go "UB"   ;; #UDP BUFFER size
+    7) clear ; go "PN"   ;; #Port Number
+    8) clear ; go "IA"   ;; #IP Address of the server
+    9) clear ; go "LL"   ;; #Log level
+   10) clear ; go "ET"   ;; #Executable Type
+   11) clear ; go "CL"   ;; #Create Command Line
+	*) clear; echo "Please select again";;
+	esac
+done
+}
+menu
+
+if [ ${executableType} == "dynamic" ] || [ ${executableType} == "DYNAMIC" ]; then
+    commandLine="ftd2pcso "
+fi
+commandLine+=${options}
+
+cat <<EOF >ftd2pc.service
+[Unit]
+Description=FTDx232H to PC service
+
+[Service]
+Type=simple
+Environment="PATH=/opt/gcc-9.2.0/bin:/home/pi/Programs/footboard2PC/sbin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/games"
+Environment="LD_LIBRARY_PATH=/opt/gcc-9.2.0/lib:/usr/local/lib"
+EOF
+
+echo "ExecStart=/usr/local/bin/${commandLine}" >> ftd2pc.service
+
+cat <<EOF >>ftd2pc.service
+User=pi
+Restart=on-failure
+RestartSec=10
+KillMode=process
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+cat <<EOF >ftd2pc.path
+[Unit]
+Description="Monitor the /home/pi/unbind_ftd2pc file for changes to start ftd2pc.service"
+
+[Path]
+PathModified=/home/pi/unbind_ftd2pc
+Unit=ftd2pc.service
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+if [ -e "/etc/systemd/system/ftd2pc.path" ]; then
+    sudo systemctl stop ftd2pc.service
+    sudo systemctl stop ftd2pc.path
+    sudo systemctl disable ftd2pc.{path,service}
+    sudo rm -f ftd2pc.*
+fi
+sudo mv ftd2pc.* /etc/systemd/system
+sudo systemctl enable ftd2pc.{path,service}
+sudo systemctl start ftd2pc.path
