@@ -166,12 +166,17 @@ Logout and then login again and run the command
 ./rasp-setup 1.0
 ```
 
-At the end of the ```rasp-setup 1.0``` command it will require what type of program you want to use
-with the following menu.
+****NOTE:**** **The setup has three phase: initialization, systemd.service creation, and wifi direct 
+hotspot creation. If you want to run rasp-setup step by step you can run rasp-setup in the following 
+order:
 
-![VersionType](./Images/VersionType.png)
+```bash
+./rasp-setup -i 1.0
+./rasp-setup -s
+./rasp-setup -n
+```
 
-Choose the versions you prefer to install.
+At the end of the ```rasp-setup -i 1.0``` command it will be convenient reboot the system.
 
 ```bash
 reboot
@@ -198,11 +203,7 @@ that tests the footboard and produces
 
 ![ListDevices](./Images/ListDevices.png)
 
-if you want work with the version that uses shared library use instead
-
-```bash
-ftd2pcso
-```
+if you want work with the version that uses shared library use ```ftd2pcso``` instead of ```ftd2pc```
 
 ### Start as Service
 

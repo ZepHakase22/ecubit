@@ -21,13 +21,11 @@ if  [ -z ${version} ]; then
     echo "USAGE: 
         rasp-setup [-a] [-s] [-n] [-i] version"
     exit 1
-fi
-if ! [ -z ${initialize} ]; then
+elif ! [ -z ${initialize} ]; then
    wget "https://github.com/ZepHakase22/ecubit/releases/download/v$version/initialize-footboard2hf"
    chmod +x ./initialize-footboard2hf
    ./initialize-footboard2hf $version
-fi
-if ! [ -z ${all} ]; then
+elif ! [ -z ${all} ]; then
     chmod +x ./initialize-footboard2hf
     ./initialize-footboard2hf $version
     create-service
@@ -35,8 +33,12 @@ if ! [ -z ${all} ]; then
     exit 0
 elif ! [ -z ${service} ]; then
     create-service
-fi
-if ! [ -z ${network}]; then
+elif ! [ -z ${network}]; then
+    create-network
+else
+    chmod +x ./initialize-footboard2hf
+    ./initialize-footboard2hf $version
+    create-service
     create-network
 fi
 exit 0

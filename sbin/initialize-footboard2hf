@@ -3,7 +3,7 @@
 mkdir -p Programs
 cd ~/Programs
 mkdir -p footboard2PC footboard2PC/downloads footboard2PC/libftd2xx && cd footboard2PC/downloads
-rm -f libftd2xx-arm-v6-hf-1.4.8.gz "ftd2pc.v$1.tar.gz"
+rm -f libftd2xx-arm-v6-hf-1.4.18.gz "ftd2pc.v$1.tar.gz"
 
 # The version we are is not yet official. For the future umask this comment and use the official release
 #wget ftdichip.com/Drivers/D2XX/Linux/libftd2xx-arm-v6-hf-1.4.18.gz
@@ -13,10 +13,10 @@ wget github.com/ZepHakase22/ecubit/releases/download/v$1/ftd2pc.v1.0.tar.gz
 tar xf libftd2xx-arm-v6-hf-1.4.18.gz -C ../libftd2xx
 tar xfz "ftd2pc.v$1.tar.gz" -C ../.
 
-sudo cp ../libftd2xx/release/build/libftd2xx.a  ../libftd2xx/release/build/libftd2xx.so.1.4.8 /usr/local/lib
-sudo chmod u+x /usr/local/lib/libftd2xx.a /usr/local/lib/libftd2xx.so.1.4.8
+sudo cp ../libftd2xx/release/build/libftd2xx.a  ../libftd2xx/release/build/libftd2xx.so.1.4.18 /usr/local/lib
+sudo chmod u+x /usr/local/lib/libftd2xx.a /usr/local/lib/libftd2xx.so.1.4.18
 
-sudo ln -sf /usr/local/lib/libftd2xx.so.1.4.8 /usr/local/lib/libftd2xx.so
+sudo ln -sf /usr/local/lib/libftd2xx.so.1.4.18 /usr/local/lib/libftd2xx.so
 echo 'export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH' >>~/.bashrc
 
 cd ~/Programs/footboard2PC/sbin
