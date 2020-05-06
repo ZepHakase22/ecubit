@@ -166,9 +166,9 @@ Logout and then login again and run the command
 ./rasp-setup 1.0
 ```
 
-****NOTE:**** **The setup has three phase: initialization, systemd.service creation, and wifi direct 
+****NOTE:**** *The setup has three phase: initialization, systemd.service creation, and wifi direct 
 hotspot creation. If you want to run rasp-setup step by step you can run rasp-setup in the following 
-order:
+order:*
 
 ```bash
 ./rasp-setup -i 1.0
