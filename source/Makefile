@@ -25,12 +25,13 @@ udp = UDPServer
 udpd = $(udp).d
 objectsudp = $(udp).o
 
-CXXFLAGS = -I../libftd2xx/release
+CXXFLAGS = -I../libftd2xx.beta/release
 DEBUG = -Wall -Wextra -g
 lib = ../libftd2xx.beta/release/build/libftd2xx.a
 
 CC = arm-linux-gnueabihf-g++
-libhf = ../libftd2xxhf/release/build/libftd2xx.a
+CFLAGS = -I../libftd2xxhf.beta/release
+libhf = ../libftd2xxhf.beta/release/build/libftd2xx.a
 
 DYNAMIC_LINK_OPTIONS := -Wl,-rpath /usr/local/lib
 
@@ -39,6 +40,22 @@ raspbian raspbiandll : RELEASE = -Os -s
 linux linuxdll raspbian raspbiandll udp : FLAGS = $(RELEASE)
 linux.d linuxdll.d raspbian.d raspbiandll.d udp.d : FLAGS = $(DEBUG)
 raspbian raspbiandll raspbian.d raspbiandll.d: CXX = $(CC)
+raspbian raspbiandll raspbian.d raspbiandll.d: CXXFLAGS = $(CFLAGS)
+
+rebuild: clean 
+	make all
+
+rebuild.r: clean 
+	make release
+
+rebuild.d: clean
+	make debug
+
+rebuild.s: clean
+	make static
+
+rebuild.l: clean
+	make dll
 
 all: 
 	make linux
@@ -47,7 +64,9 @@ all:
 	make linux.d 
 	make raspbian.d 
 	make udp.d
+	make linuxdll
 	make raspbiandll
+	make linuxdll.d
 	make raspbiandll.d
 
 release:
@@ -66,8 +85,6 @@ static:
 	make linux
 	make raspbian
 	make udp
-
-staticdebug:
 	make linux.d
 	make raspbian.d
 	make udp.d
@@ -75,8 +92,6 @@ staticdebug:
 dll: 
 	make linuxdll 
 	make raspbiandll 
-
-dlldebug: 
 	make linuxdll.d 
 	make raspbiandll.d 
 
@@ -93,16 +108,16 @@ $(appdlld): $(objects)
 	$(CXX) $(CXXFLAGS) $(DEBUG) -o $(appdlld) $(objects) -lftd2xx $(DEPENDENCIES) $(DYNAMIC_LINK_OPTIONS)
 
 $(apphf): $(objects)
-	$(CXX) $(CXXFLAGS) $(RELEASE) -o $(apphf) $(objects) $(libhf) $(DEPENDENCIES)
+	$(CXX) $(CFLAGS) $(RELEASE) -o $(apphf) $(objects) $(libhf) $(DEPENDENCIES)
 
 $(apphfdll): $(objects)
-	$(CXX) $(CXXFLAGS) $(RELEASE) -o $(apphfdll) $(objects) -L/usr/local/lib/hf -lftd2xx $(DEPENDENCIES)
+	$(CXX) $(CFLAGS) $(RELEASE) -o $(apphfdll) $(objects) -L/usr/local/lib/hf -lftd2xx $(DEPENDENCIES)
 	
 $(apphfd): $(objectshf)
-	$(CXX) $(CXXFLAGS) $(DEBUG) -o $(apphfd) $(objectshf) $(libhf) $(DEPENDENCIES)
+	$(CXX) $(CFLAGS) $(DEBUG) -o $(apphfd) $(objectshf) $(libhf) $(DEPENDENCIES)
 
 $(apphfdlld): $(objectshf)
-	$(CXX) $(CXXFLAGS) $(DEBUG) -o $(apphfdlld) $(objects) -L/usr/local/lib/hf -lftd2xx $(DEPENDENCIES)
+	$(CXX) $(CFLAGS) $(DEBUG) -o $(apphfdlld) $(objects) -L/usr/local/lib/hf -lftd2xx $(DEPENDENCIES)
 
 $(udp): $(objectsudp)
 	$(CXX) $(CXXFLAGS) $(RELEASE) -o $(udp) $(objectsudp) $(DEPENDENCIES)
@@ -123,14 +138,6 @@ EnumToString.o: EnumToString.cpp enums.h EnumToString.h
 parseopt.o: parseopt.cpp cppopt.hpp
 udpClient.o: udpClient.cpp enums.h ftdException.hpp udpClient.hpp
 UDPServer.o: UDPServer.cpp
-
-rebuild: clean all
-rebuild.r: clean release
-rebuild.d: clean debug
-rebuild.s: clean static
-rebuild.sd: clean staticdebug
-rebuild.dl: clean dll
-rebuild.dd: clean dlldebug
 
 linux: cleanlinux $(app)
 

@@ -5,4 +5,4 @@ cd ~/Programs/footboard2PC
 rm -f "./downloads/ftd2pc.v$1.tar.gz"
 tar cvzf "./downloads/ftd2pc.v$1.tar.gz" sbin/99-ftdi.d2xx.rules source/footboard2PChf source/footboard2PChfdll \
   sbin/unbind_ftdi.sh sbin/Autohotspot/ sbin/initialize-footboard2hf downloads/gcc-9.2.0-armhf-raspbian.tar.bz2 \
-  sbin/install-gcc sbin/rasp-setup
+  sbin/install-gcc sbin/rasp-setup sbin/create-service
