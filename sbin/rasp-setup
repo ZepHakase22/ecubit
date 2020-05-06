@@ -19,7 +19,7 @@ version=$1
 if  [ -z ${version} ]; then
     echo "Version parameter must be assigned"
     echo "USAGE: 
-        rasp-setup [-a] [-s] [-n] version"
+        rasp-setup [-a] [-s] [-n] [-i] version"
     exit 1
 fi
 if ! [ -z ${initialize} ]; then
