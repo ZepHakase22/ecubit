@@ -113,26 +113,32 @@ go() {
                 capacity=""
             fi
         elif [ ${opt} == "FB" ]; then
-            echo "Enter the Fifo Buffer Size:"
+            echo "Enter the Fifo Buffer Size:(Max = 65536)"
             read var
             if ! [ -z "${var}" ]; then
                 if ! [[ $var =~ $re ]] ; then
                     echo "error: Not a number. Press any key and repeat"
                     read
-                else
+                elif (( var > 65536 )); then
+		            echo "error: buffer can't be greater than 65536. Press any key and repeat"
+		            read
+		        else
                     fifoBuffer="-f "${var}" "
                 fi
             else
                 fifoBuffer=""
             fi
         elif [ ${opt} == "UB" ]; then
-            echo "Enter the UDP Buffer Size:"
+            echo "Enter the UDP Buffer Size:(Max = 65507)"
             read var
             if ! [ -z "${var}" ]; then
                 if ! [[ $var =~ $re ]] ; then
                     echo "error: Not a number. Press any key and repeat"
                     read
-                else
+                elif (( var > 65507 )); then
+		            echo "error: buffer can't be greater than 65507. Press any key and repeat"
+		            read
+		        else
                     udpBuffer="-u "${var}" "
                 fi
             else
@@ -196,7 +202,9 @@ go() {
         elif [ ${opt} == "CL" ]; then
             if [[ ! "${serialNumber}" && ! "${description}" ]] || [ ! "${ipAddress}" ]; then
                 echo "IP Address cannot be null or at least one of the Serial Number and Description cannot be null"
+                echo "Press any key and repeat"
                 select=""
+                read
             else
                 options="${serialNumber}${description}${useThread}${capacity}${fifoBuffer}${udpBuffer}${portNumber}${ipAddress}${logLevel}"
             fi
