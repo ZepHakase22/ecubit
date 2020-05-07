@@ -5,6 +5,7 @@
 #include <time.h>
 #define __STDC_FORMAT_MACROS
 #include <cinttypes>
+#include <errno.h>
 
 
 #define PORT 80
@@ -32,14 +33,55 @@ static void dumpBuffer(unsigned char *buffer, int elements)
 }
 
 // Driver code 
-int main(int , char *argv[]) { 
+int main(int argc, char *argv[]) { 
     int sockfd; 
 
     unsigned char *buffer; 
     struct sockaddr_in servaddr, cliaddr; 
     ulong length;
+    char var[256];
+    bool isSilent=false;
 
-    sscanf(argv[1],"%ld",&length);
+    if(argc==1) {
+        errno=ENOBUFS;
+        perror("Missing buffer size");
+        exit ( EXIT_FAILURE);
+    } else if(argc ==2 ) {
+        if(sscanf(argv[1],"%ld",&length)!=1) {
+            errno=EINVAL;
+            perror("Buffer size not an integer");
+            exit( EXIT_FAILURE );
+        }
+    } else if(argc == 3) {
+        if(sscanf(argv[1],"%ld",&length)!=1) {
+            sscanf(argv[1],"%s",var);
+            if(!strcmp(var,"-s")) {
+                isSilent=true;
+            } else {
+                errno=EINVAL;
+                perror("Invalid option");
+                exit(EXIT_FAILURE);
+            }
+            if(sscanf(argv[2],"%ld",&length)!=1) {     
+                errno=EINVAL;   
+                perror("Buffer size not an integer");
+                exit( EXIT_FAILURE );
+            }
+        } else {
+            sscanf(argv[2],"%s",var);
+            if(!strcmp(var,"-s")) {
+                isSilent=true;
+            } else {
+                errno=EINVAL;
+                perror("Invalid option");
+                exit(EXIT_FAILURE);
+            }
+        }
+    } else {
+        errno=EINVAL;
+        perror("Invalid argument numbers");
+        exit(EXIT_FAILURE);
+    }
     buffer = (unsigned char *)calloc(length,1);
         // Creating socket file descriptor 
     if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) { 
@@ -74,8 +116,10 @@ int main(int , char *argv[]) {
         n = recvfrom(sockfd, (unsigned char *)buffer, length,  
                     MSG_WAITALL, ( struct sockaddr *) &cliaddr, 
                     &len); 
-        printf("Bytes received : %ld\n", n); 
-        dumpBuffer(buffer,n);
+        if(!isSilent) {
+            printf("Bytes received : %ld\n", n); 
+            dumpBuffer(buffer,n);
+        }
         transferred+=n;
         if(transferred >= 1000000)
             break;
@@ -85,7 +129,7 @@ int main(int , char *argv[]) {
 
     std::uint64_t tick1=GetTickCountMs();
     std::uint64_t t=(tick1-tick)/1000;
-    std::printf( "Transferred %ld bytes in %" PRId64 " minutes\n", transferred,t);
+    std::printf( "Transferred %ld bytes in %" PRId64 " seconds\n", transferred,t);
     return 0; 
 } 
 
