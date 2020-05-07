@@ -340,7 +340,7 @@ the service will restart.
 At the end, if you want, you can start the service with the command
 
 ```bash
-sudo systemctl stop ftd2pc.service
+sudo systemctl start ftd2pc.service
 ```
 
 The service is a systemd service so see ```man SYSTEMD(1)```  for more informations.
