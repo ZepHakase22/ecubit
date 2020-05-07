@@ -2,6 +2,7 @@
 **/*.obj
 **/.vs
 **/x64
+source/lastVersion
 source/footboard2PC
 source/footboard2PC.d
 source/UDPServer
