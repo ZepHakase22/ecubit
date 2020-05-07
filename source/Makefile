@@ -41,6 +41,7 @@ linux linuxdll raspbian raspbiandll udp : FLAGS = $(RELEASE)
 linux.d linuxdll.d raspbian.d raspbiandll.d udp.d : FLAGS = $(DEBUG)
 raspbian raspbiandll raspbian.d raspbiandll.d: CXX = $(CC)
 raspbian raspbiandll raspbian.d raspbiandll.d: CXXFLAGS = $(CFLAGS)
+udp udp.d: CXXFLAGS =
 
 rebuild: clean 
 	make all
@@ -123,7 +124,7 @@ $(udp): $(objectsudp)
 	$(CXX) $(CXXFLAGS) $(RELEASE) -o $(udp) $(objectsudp) $(DEPENDENCIES)
 
 $(udpd): $(objectsudp)
-	$(CXX) $(CXXFLAGS) $(DEBUG) -o $(udpd) $(objectsudp) $(DEPENDENCIES)
+	$(CXX) $(DEBUG) -o $(udpd) $(objectsudp) $(DEPENDENCIES)
 
 $(objects): 
 	$(CXX) $(CXXFLAGS) $(FLAGS) -c $< -o $@
