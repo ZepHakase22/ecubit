@@ -1,21 +1,4 @@
 #!/bin/bash
-#RaspberryConnect.com
-#This installer can be shared but all references to RaspberryConnect.com in this file
-#and other files used by the installer should remain in place. 
-
-#Installer version 0.73 (25 Apr 2020)
-#Installer for AutoHotspot, AutohotspotN scripts and Static Hotspot setup.
-#Autohotspot: a script that allows the Raspberry Pi to switch between Network Wifi and
-#a hotspot either at bootup or with a timer without a reboot.
-
-#This installer script will alter network settings and may overwrite existing settings if allowed.
-#/etc/hostapd/hostapd.conf (backup old), /etc/dnsmasq.conf (backup old), modifies /etc/dhcpcd.conf (modifies)
-#/etc/sysctl.conf (modifies), /etc/network/interfaces (backup old & removes any network entries)
-#Currently iptables are used, you will receive a warning if nftables active active.
-#If you are using nftables please only use option 2, Autohotspot-Non Internet script until a future update.
-
-#Force Hotspot or Network Wifi option will only work if either autohotspot is installed and active.
-
 
 #Check for Raspbian and version.
 osver=($(cat /etc/issue))
@@ -33,6 +16,11 @@ elif [ "${osver[2]}" -lt 8 ];then
 	echo "The version of Raspbian is too old for the Autohotspot script"
 	echo "Version 8 'Jessie' is the minimum requirement"
 fi
+
+declare -A matrix
+num_columns=2
+num_rows=0
+re='^[0-9]+$'
 
 check_installed()
 {
@@ -633,14 +621,160 @@ go()
 	read
 	
 }
+valid_mac() 
+{
+	local mac=$1
+	local stat=1
 
+	if [[ $mac =~ ^(([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2}))|(([0-9A-Fa-f]{2}[-]){5}([0-9A-Fa-f]{2}))$ ]]; then
+		stat=0
+	fi
+	return $stat
+
+}
+
+valid_ip()
+{
+    local  ip=$1
+    local  stat=1
+
+    if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        OIFS=$IFS
+        IFS='.'
+        ip=($ip)
+        IFS=$OIFS
+        [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 \
+            && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
+        stat=$?
+    fi
+    return $stat
+}
+
+prepare()
+{
+	opt="$1"
+	if ! [ -z ${opt} ]; then
+		if [ ${opt} == "AMA" ]; then
+			f1="%$((${#num_rows}+1))s"
+			f2=" %15s"
+			printf "$f1" ''
+			for ((i=1;i<=2;i++)) do
+				if ((i==1)); then
+					printf "$f2" "MAC Address"
+				else
+					printf "$f2" "IP Address"
+				fi			
+			done
+			echo
+			for ((j=1;j<=num_rows;j++)) do
+				printf $f1 $j
+				for ((i=1;i<=num_columns;i++)) do
+        			printf "$f2" ${matrix[$j,$i]}
+    			done
+    			echo
+			done
+			echo "Enter the row of IP address to associate if any:"
+			read var
+			if ! [[ $var =~ $re ]] ; then
+				var=""
+			fi
+			echo "Enter the MAC address:"
+			read var1
+			if [ -z ${var} ] || (( var > num_rows )); then
+				if valid_mac ${var1} ; then
+					num_rows=$(( num_rows + 1 ))
+					matrix[$num_rows,1]=$var1
+				else
+                    echo "error: Not a mac address. Press any key and repeat"
+                    read
+				fi
+			else
+				if valid_mac ${var1} ; then
+					matrix[$var,1]=$var1
+				else
+                    echo "error: Not a mac address. Press any key and repeat"
+                    read
+				fi
+			fi
+		fi
+		if [ ${opt} == "RIA" ]; then
+			f1="%$((${#num_rows}+1))s"
+			f2=" %15s"
+			printf "$f1" ''
+			for ((i=1;i<=2;i++)) do
+				if ((i==1)); then
+					printf "$f2" "MAC Address"
+				else
+					printf "$f2" "IP Address"
+				fi			
+			done
+			echo
+			for ((j=1;j<=num_rows;j++)) do
+				printf $f1 $j
+				for ((i=1;i<=num_columns;i++)) do
+        			printf "$f2" ${matrix[$j,$i]}
+    			done
+    			echo
+			done
+			echo "Enter the row of Mac address to associate if any:"
+			read var
+			if ! [[ $var =~ $re ]] ; then
+				var=""
+			fi
+			echo "Enter the IP address: (range is 10.0.0.50-10.0.0.100)"
+			read var1
+			if [ -z ${var} ] || (( var > num_rows )); then
+				if valid_ip ${var1} ; then
+					num_rows=$(( num_rows + 1 ))
+					matrix[$num_rows,2]=$var1
+				else
+                    echo "error: Not an IP address. Press any key and repeat"
+                    read
+				fi
+			else
+				if valid_ip ${var1} ; then
+					matrix[$var,2]=$var1
+				else
+                    echo "error: Not an IP address. Press any key and repeat"
+                    read
+				fi
+			fi
+		fi
+		if [ ${opt} == "END" ]; then
+			for ((i=1; i<=num_rows; i++)) do
+				dhcpHost="dhcp-host=${matrix[$i,1]},${matrix[$i,2]}"
+				echo $dhcpHost >> ~/Programs/footboard2PC/sbin/Autohotspot/dnsmasqAHS.conf
+				if ((i==1)); then
+					cat ${matrix[1,2]} > ~/Programs/footboard2PC/networkIP
+				fi
+			done
+			go "AHD" #Autohotspot Direct
+		fi
+	fi
+}
 menu()
 {
 #selection menu
-clear
-go "AHD" #Autohotspot Direct
+until [ "$select" = 4 ]; do
+	clear
+	echo "FTDI Hot Spot network installation"
+	echo ""
+	echo " 1 = Add MAC Address"
+	echo " 2 = Reserve IP Address"
+	echo " 3 = Remove network"
+	echo " 4 = exit"
+	echo ""
+	echo -n "Select an Option:"
+	read select
+	case ${select} in
+	1) clear; prepare "AMA" ;; #Prepares array of mac address
+	2) clear; prepare "RIA" ;; #Associate IP to mac address
+	3) clear; go "REM"	;; #Remove Network configuration
+	4) clear; prepare "END"	;; #Save and call Hotspot
+	*) clear; echo "Please select again" ;;
+	esac
+done
 }
-
 check_installed #check system and status
 if [ $nftble = "Y" ]; then
 	echo "The Internet Hotspots scripts use iptables. nftables is enabled on this system."
@@ -655,3 +789,5 @@ check_reqfiles
 check_installed
 check_wificountry
 menu #show menu
+
+

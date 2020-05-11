@@ -1,5 +1,8 @@
 #!/bin/bash
 
+rm -f ~/Programs/footboard2PC/networkIP
+rm -f ~/Programs/footboard2PC/serviceIP
+
 if [ "$1" == -i ]; then 
     initialize=yes
     shift

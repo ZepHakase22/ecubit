@@ -158,19 +158,25 @@ go() {
                 portNumber=""
             fi
         elif [ ${opt} == "IA" ]; then
-            echo -n "Enter the Server IP Address:"
-            if ! [ -z "${ipAddress}" ]; then
-                echo "default ${ipAddress}"
+            if [ -f "~/Programs/footboard2PC/networkIP" ]; then
+                ipAddress=`cat ~/Programs/footboard2PC/networkIP`
+                echo "IP Address is defined by network. Value is: "$ipAddress
             else
-                echo ""
-            fi
-            read var
-            if ! [ -z "${var}" ]; then
-                if valid_ip ${var} ; then
-                    ipAddress=${var}" "
+                echo -n "Enter the Server IP Address:"
+                if ! [ -z "${ipAddress}" ]; then
+                    echo "default ${ipAddress}"
                 else
-                    echo "error: Not a ip address. Press any key and repeat"
-                    read
+                    echo ""
+                fi
+                read var
+                if ! [ -z "${var}" ]; then
+                    if valid_ip ${var} ; then
+                        ipAddress=${var}" "
+                        cat $var > ~/Programs/footboard2PC/serviceIP
+                    else
+                        echo "error: Not a ip address. Press any key and repeat"
+                        read
+                    fi
                 fi
             fi
         elif [ ${opt} == "LL" ]; then
@@ -300,3 +306,7 @@ fi
 sudo mv ftd2pc.* /etc/systemd/system
 sudo systemctl enable ftd2pc.{path,service}
 sudo systemctl start ftd2pc.path
+if [ -f "~/Programs/footboard2PC/networkIP" ]; then
+    rm -f ~/Programs/footboard2PC/networkIP
+    rm -f ~/Programs/footboard2PC/serviceIP
+fi
