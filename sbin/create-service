@@ -160,6 +160,7 @@ go() {
         elif [ ${opt} == "IA" ]; then
             if [ -f "~/Programs/footboard2PC/networkIP" ]; then
                 ipAddress=`cat ~/Programs/footboard2PC/networkIP`
+                ipAddress=${ipAddress}" "
                 echo "IP Address is defined by network. Value is: "$ipAddress
             else
                 echo -n "Enter the Server IP Address:"
@@ -172,7 +173,7 @@ go() {
                 if ! [ -z "${var}" ]; then
                     if valid_ip ${var} ; then
                         ipAddress=${var}" "
-                        cat $var > ~/Programs/footboard2PC/serviceIP
+                        echo "$var" > ~/Programs/footboard2PC/serviceIP
                     else
                         echo "error: Not a ip address. Press any key and repeat"
                         read

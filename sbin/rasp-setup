@@ -6,18 +6,20 @@ rm -f ~/Programs/footboard2PC/serviceIP
 if [ "$1" == -i ]; then 
     initialize=yes
     shift
+    version=$1
 elif [ "$1" == -a ]; then
     all=yes
     shift
+    version=$1
 elif [ "$1" == -s ]; then
     service=yes
     shift
+    version="no-version"
 elif [ "$1" == -n ]; then
     network=yes
     shift
+    version="no-version"
 fi
-
-version=$1
 
 if  [ -z ${version} ]; then
     echo "Version parameter must be assigned"
@@ -31,17 +33,23 @@ elif ! [ -z ${initialize} ]; then
 elif ! [ -z ${all} ]; then
     chmod +x ./initialize-footboard2hf
     ./initialize-footboard2hf $version
+    source ~/.bashrc
     create-service
+    source ~/.bashrc
     create-network
     exit 0
 elif ! [ -z ${service} ]; then
+    source ~/.bashrc
     create-service
-elif ! [ -z ${network}]; then
+elif ! [ -z ${network} ]; then
+    source ~/.bashrc
     create-network
 else
     chmod +x ./initialize-footboard2hf
     ./initialize-footboard2hf $version
+    source ~/.bashrc
     create-service
+    source ~/.bashrc
     create-network
 fi
 exit 0

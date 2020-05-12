@@ -150,7 +150,7 @@ If you want change the password to the raspberry pi user, run the command ```pas
 Run the following command:
 
 ```bash
-echo "pi      ALL=(ALL) NOPASSWD: ALL" | sudo tee -a /etc/sudoers && usermod -a -G root pi
+echo "pi      ALL=(ALL) NOPASSWD: ALL" | sudo tee -a /etc/sudoers && sudo usermod -a -G root pi
 ```
 
 and

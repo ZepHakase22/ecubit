@@ -1,0 +1,15 @@
+#! /bin/bash
+
+cd ~/Programs/footboard2PC/sbin/Autohotspot
+./wifi-setup
+if [ -f "~/Programs/footboard2PC/serviceIP" ]; then
+    sudo systemctl stop ftd2pc.service
+    valueNetwork=`cat ~/Programs/footboard2PC/networkIP`
+    valueService=`cat ~/Programs/footboard2PC/serviceIP`
+    sudo cp /etc/systemd/system/ftd2pc.service ~/Programs/footboard2PC/sbin/ftd2pc.service.old
+    sudo sed -i 's/$valueService/$valueNetwork/g' /etc/systemd/system/ftd2pc.service
+    sudo systemctl daemon-reload ftd2pc.service
+    rm -f ~/Programs/footboard2PC/serviceIP
+    rm -f ~/Programs/footboard2PC/networkIP
+fi 
+exit 0

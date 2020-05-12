@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/footboard2PC.d",
             "args": [
                 "-s",
-                "FT4WINDSA",
+                "FT4WIND6A",
                 "-f",
                 "2048",
                 "-u",
